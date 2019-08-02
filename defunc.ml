@@ -136,7 +136,7 @@ let apply (type a) (t : a t) args kwargs =
   if final_pos <> Array.length args
   then
     value_errorf
-      "expected expected %d arguments (%s), got %d"
+      "expected %d arguments (%s), got %d"
       final_pos
       (positional_arguments () |> String.concat ~sep:", ")
       (Array.length args);
