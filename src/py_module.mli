@@ -4,6 +4,7 @@ open Base
 type t
 
 val create : string -> t
+val create_with_eval : name:string -> py_source:string -> t
 val set_value : t -> string -> pyobject -> unit
 
 val set_function

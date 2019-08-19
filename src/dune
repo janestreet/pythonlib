@@ -1,0 +1,3 @@
+(library (name python_lib) (public_name pythonlib)
+ (libraries base pyml stdio typerep)
+ (preprocess (pps ppx_jane -allow-unannotated-ignores ppx_python)))

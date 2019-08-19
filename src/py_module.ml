@@ -4,6 +4,22 @@ open Import
 type t = pyobject
 
 let create = Py.Import.add_module
+
+let create_with_eval ~name ~py_source =
+  let modl = Py.Import.add_module name in
+  let modl_dict = Py.Module.get_dict modl in
+  (* Set __file__ to "<pyml>", because it doesn't come from a real file that Python tools
+     can expect to be able to read. It seems like non-filename values are acceptable in
+     this case (see [1] which recommends "<string>")
+
+     [1]: https://docs.python.org/3/library/functions.html#compile
+  *)
+  Py.Dict.set_item_string modl_dict "__file__" (python_of_string "<pyml>");
+  Py.Dict.set_item_string modl_dict "__builtins__" (Py.Eval.get_builtins ());
+  let _ = Py.Run.eval ~globals:modl_dict ~locals:modl_dict ~start:File py_source in
+  modl
+;;
+
 let set_value = Py.Module.set
 
 let keywords_of_python pyobject =
