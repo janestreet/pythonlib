@@ -249,7 +249,12 @@ module Param = struct
   let list o =
     Of_python.create
       ~type_name:(Printf.sprintf "[%s]" (Of_python.type_name o))
-      ~conv:(Py.List.to_list_map (Of_python.conv o))
+      ~conv:(fun python_value ->
+        (match Py.Type.get python_value with
+         | List | Tuple -> ()
+         | otherwise ->
+           Printf.failwithf "not a list or a tuple (%s)" (Py.Type.name otherwise) ());
+        Py.List.to_list_map (Of_python.conv o) python_value)
   ;;
 
   let one_or_tuple_or_list o =

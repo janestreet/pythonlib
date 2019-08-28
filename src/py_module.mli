@@ -32,3 +32,5 @@ val set_unit : t -> ?docstring:string -> string -> unit Defunc.t -> unit
 val keywords_of_python
   :  pyobject
   -> (string, pyobject, String.comparator_witness) Map.t Or_error.t
+
+val docstring_with_params : ?docstring:string -> _ Defunc.t -> string
