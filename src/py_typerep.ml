@@ -25,7 +25,6 @@ end = struct
     ; python_to_ocaml : pyobject -> 'a
     ; ocaml_to_python : 'a -> pyobject
     }
-  [@@deriving fields]
 
   type packed = T : 'a t -> packed
 
@@ -52,7 +51,7 @@ end = struct
   let mem = Hashtbl.mem store
 
   let find_ocaml_type ~name =
-    Option.map (Hashtbl.find store name) ~f:(fun (T t) -> ocaml_type t)
+    Option.map (Hashtbl.find store name) ~f:(fun (T t) -> t.ocaml_type)
   ;;
 
   let find_exn ~name =
@@ -223,24 +222,29 @@ let rec python_to_ocaml : type a. a Typerep.t -> pyobject -> a =
 
 let%expect_test "obj" =
   if not (Py.is_initialized ()) then Py.initialize ();
+  let print_list elt_to_string l =
+    List.map l ~f:elt_to_string |> String.concat ~sep:" " |> Stdio.printf "%s\n%!"
+  in
   let roundtrip : type a. a Typerep.t -> a -> a =
     fun t v -> ocaml_to_python t v |> python_to_ocaml t
   in
   let () = roundtrip Unit () in
-  Stdio.printf !"%{sexp:int list}\n%!" (List.map [ -1; 0; 42 ] ~f:(roundtrip Int));
-  [%expect {| (-1 0 42) |}];
-  Stdio.printf
-    !"%{sexp:float list}\n%!"
-    (List.map [ -2.71828; 3.1415 ] ~f:(roundtrip Float));
-  [%expect {| (-2.71828 3.1415) |}];
-  Stdio.printf !"%{sexp:float list}\n%!" (roundtrip (List Float) [ -2.71828; 3.1415 ]);
-  [%expect {| (-2.71828 3.1415) |}];
-  Stdio.printf
-    !"%{sexp:(float * int * (string * bool)option) list}\n%!"
+  print_list Int.to_string (List.map [ -1; 0; 42 ] ~f:(roundtrip Int));
+  [%expect {| -1 0 42 |}];
+  print_list Float.to_string (List.map [ -2.71828; 3.1415 ] ~f:(roundtrip Float));
+  [%expect {| -2.71828 3.1415 |}];
+  print_list Float.to_string (roundtrip (List Float) [ -2.71828; 3.1415 ]);
+  [%expect {| -2.71828 3.1415 |}];
+  print_list
+    (fun (f, i, o) ->
+       let o =
+         Option.value_map o ~default:"()" ~f:(fun (s, b) -> Printf.sprintf "%s %b" s b)
+       in
+       Printf.sprintf "(%f %i %s)" f i o)
     (roundtrip
        (List (Tuple (T3 (Float, Int, Option (Tuple (T2 (String, Bool)))))))
        [ 3.14, 42, None; 2.71828, 1337, Some ("test", true) ]);
-  [%expect {| ((3.14 42 ()) (2.71828 1337 ((test true)))) |}]
+  [%expect {| (3.140000 42 ()) (2.718280 1337 test true) |}]
 ;;
 
 (* This is used by the parser below, it's similar to [String.split] except that no
@@ -272,14 +276,14 @@ let%expect_test "split" =
     [ "a"; "a*bc"; "a*bc*d*()*a"; "a*(b*(c))*d"; "((a)*b)*c" ]
     ~f:(fun index str ->
       let strs = split_on_unescaped str ~on:'*' in
-      Stdio.printf !"%d %{sexp:string list}\n%!" index strs);
+      Stdio.printf "%d %s\n%!" index (String.concat strs ~sep:" "));
   [%expect
     {|
-        0 (a)
-        1 (a bc)
-        2 (a bc d "()" a)
-        3 (a "(b*(c))" d)
-        4 ("((a)*b)" c) |}]
+        0 a
+        1 a bc
+        2 a bc d () a
+        3 a (b*(c)) d
+        4 ((a)*b) c |}]
 ;;
 
 (* Hacky type parser. *)
@@ -363,7 +367,7 @@ let register_named_type ~name ~ocaml_type =
     Printf.failwithf "Type %s already exists and is bound to %s." name otype ()
   | None ->
     let ocaml_to_python, python_to_ocaml =
-      Py.Capsule.make (Printf.sprintf !"%s-%s" name ocaml_type)
+      Py.Capsule.make (Printf.sprintf "%s-%s" name ocaml_type)
     in
     Named_types.register_exn ~name ~ocaml_type ~python_to_ocaml ~ocaml_to_python
 ;;
@@ -387,7 +391,7 @@ let%expect_test "parse-type" =
         | `fn (T t1, T t2) -> Printf.sprintf "%s -> %s" (to_ocaml t1) (to_ocaml t2)
         | `value (T t) -> to_ocaml t
       in
-      Stdio.printf !"%d %s\n%!" index str);
+      Stdio.printf "%d %s\n%!" index str);
   [%expect
     {|
         0 unit

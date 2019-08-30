@@ -49,7 +49,7 @@ module One_or_tuple_or_list = struct
   let t_of_python a_of_python p =
     try One_or_tuple.t_of_python a_of_python p with
     | _ ->
-      if Py.List.check p
+      if Py.List.check p || Py.Iter.check p
       then Py.List.to_list_map a_of_python p
       else failwith "incorrect python type"
   ;;

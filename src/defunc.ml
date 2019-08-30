@@ -6,9 +6,8 @@ module Of_python = struct
     { type_name : string
     ; conv : pyobject -> 'a
     }
-  [@@deriving fields]
 
-  let create = Fields.create
+  let create ~type_name ~conv = { type_name; conv }
 end
 
 module Arg = struct
@@ -18,7 +17,6 @@ module Arg = struct
     ; docstring : string
     ; kind : [ `positional | `keyword of 'a option ]
     }
-  [@@deriving fields]
 end
 
 module Opt_arg = struct
@@ -27,7 +25,6 @@ module Opt_arg = struct
     ; of_python : 'a Of_python.t
     ; docstring : string
     }
-  [@@deriving fields]
 end
 
 module T0 = struct
@@ -74,9 +71,13 @@ let check_valid_arg_name name =
 
 let apply (type a) (t : a t) args kwargs =
   let try_of_python v ~of_python ~name =
-    try Of_python.conv of_python v with
+    try of_python.Of_python.conv v with
     | e ->
-      value_errorf !"error processing arg %s (%s): %{Exn}" name of_python.type_name e
+      value_errorf
+        "error processing arg %s (%s): %s"
+        name
+        of_python.type_name
+        (Exn.to_string e)
   in
   let kwnames = Hash_set.create (module String) in
   let positional_arguments () =
@@ -146,17 +147,10 @@ let apply (type a) (t : a t) args kwargs =
 let params_docstring t =
   let sprintf = Printf.sprintf in
   let arg_docstring arg ~pos =
-    match Arg.kind arg with
+    match arg.Arg.kind with
     | `positional ->
-      [ sprintf
-          "    :param %s: (positional %d) %s"
-          (Arg.name arg)
-          pos
-          (Arg.docstring arg)
-      ; sprintf
-          "    :type %s: %s"
-          (Arg.name arg)
-          (Arg.of_python arg |> Of_python.type_name)
+      [ sprintf "    :param %s: (positional %d) %s" arg.name pos arg.docstring
+      ; sprintf "    :type %s: %s" arg.name arg.of_python.type_name
       ]
       |> String.concat ~sep:"\n"
     | `keyword default ->
@@ -165,23 +159,14 @@ let params_docstring t =
         | None -> "mandatory keyword"
         | Some _ -> "keyword with default"
       in
-      [ sprintf "    :param %s: (%s) %s" (Arg.name arg) default (Arg.docstring arg)
-      ; sprintf
-          "    :type %s: %s"
-          (Arg.name arg)
-          (Arg.of_python arg |> Of_python.type_name)
+      [ sprintf "    :param %s: (%s) %s" arg.name default arg.docstring
+      ; sprintf "    :type %s: %s" arg.name arg.of_python.type_name
       ]
       |> String.concat ~sep:"\n"
   in
-  let opt_arg_docstring arg =
-    [ sprintf
-        "    :param %s: (optional keyword) %s"
-        (Opt_arg.name arg)
-        (Opt_arg.docstring arg)
-    ; sprintf
-        "    :type %s: %s"
-        (Opt_arg.name arg)
-        (Opt_arg.of_python arg |> Of_python.type_name)
+  let opt_arg_docstring (arg : _ Opt_arg.t) =
+    [ sprintf "    :param %s: (optional keyword) %s" arg.name arg.docstring
+    ; sprintf "    :type %s: %s" arg.name arg.of_python.type_name
     ]
     |> String.concat ~sep:"\n"
   in
@@ -224,49 +209,42 @@ module Param = struct
   let string = Of_python.create ~type_name:"string" ~conv:string_of_python
   let pyobject = Of_python.create ~type_name:"obj" ~conv:Fn.id
 
-  let pair o1 o2 =
+  let pair (o1 : _ Of_python.t) (o2 : _ Of_python.t) =
     Of_python.create
-      ~type_name:
-        (Printf.sprintf "(%s, %s)" (Of_python.type_name o1) (Of_python.type_name o2))
+      ~type_name:(Printf.sprintf "(%s, %s)" o1.type_name o2.type_name)
       ~conv:(fun pyobject ->
         let p1, p2 = Py.Tuple.to_tuple2 pyobject in
-        Of_python.conv o1 p1, Of_python.conv o2 p2)
+        o1.conv p1, o2.conv p2)
   ;;
 
-  let triple o1 o2 o3 =
+  let triple (o1 : _ Of_python.t) (o2 : _ Of_python.t) (o3 : _ Of_python.t) =
     Of_python.create
-      ~type_name:
-        (Printf.sprintf
-           "(%s, %s, %s)"
-           (Of_python.type_name o1)
-           (Of_python.type_name o2)
-           (Of_python.type_name o3))
+      ~type_name:(Printf.sprintf "(%s, %s, %s)" o1.type_name o2.type_name o3.type_name)
       ~conv:(fun pyobject ->
         let p1, p2, p3 = Py.Tuple.to_tuple3 pyobject in
-        Of_python.conv o1 p1, Of_python.conv o2 p2, Of_python.conv o3 p3)
+        o1.conv p1, o2.conv p2, o3.conv p3)
   ;;
 
-  let list o =
+  let list (o : _ Of_python.t) =
     Of_python.create
-      ~type_name:(Printf.sprintf "[%s]" (Of_python.type_name o))
+      ~type_name:(Printf.sprintf "[%s]" o.type_name)
       ~conv:(fun python_value ->
         (match Py.Type.get python_value with
          | List | Tuple -> ()
          | otherwise ->
            Printf.failwithf "not a list or a tuple (%s)" (Py.Type.name otherwise) ());
-        Py.List.to_list_map (Of_python.conv o) python_value)
+        Py.List.to_list_map o.conv python_value)
   ;;
 
-  let one_or_tuple_or_list o =
+  let one_or_tuple_or_list (o : _ Of_python.t) =
     Of_python.create
-      ~type_name:(Printf.sprintf "[%s]" (Of_python.type_name o))
-      ~conv:(One_or_tuple_or_list.t_of_python (Of_python.conv o))
+      ~type_name:(Printf.sprintf "[%s]" o.type_name)
+      ~conv:(One_or_tuple_or_list.t_of_python o.conv)
   ;;
 
-  let dict ~key ~value =
+  let dict ~(key : _ Of_python.t) ~(value : _ Of_python.t) =
     Of_python.create
-      ~type_name:
-        (Printf.sprintf "[%s: %s]" (Of_python.type_name key) (Of_python.type_name value))
-      ~conv:(Py.Dict.to_bindings_map (Of_python.conv key) (Of_python.conv value))
+      ~type_name:(Printf.sprintf "[%s: %s]" key.type_name value.type_name)
+      ~conv:(Py.Dict.to_bindings_map key.conv value.conv)
   ;;
 end

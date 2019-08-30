@@ -13,7 +13,7 @@ This function is attached to a newly defined python module named `ocaml_module`.
 open Base
 
 let approx_pi =
-  let%map_open.Python_lib.Let_syntax n = positional "n" int ~docstring:""
+  let%map_open.Python_lib n = positional "n" int ~docstring:""
   in
   let sum =
     List.init n ~f:(fun i -> let i = Float.of_int (1 + i) in 1.0 /. (i *. i))

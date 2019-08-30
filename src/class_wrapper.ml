@@ -41,7 +41,6 @@ module Init = struct
     { fn : 'a cls -> args:pyobject list -> 'a
     ; docstring : string option
     }
-  [@@deriving fields]
 
   let create ?docstring fn = { docstring; fn }
 end
@@ -63,7 +62,6 @@ module Method = struct
     ; fn : 'a fn
     ; docstring : string option
     }
-  [@@deriving fields]
 
   let create ?docstring name fn = { name; fn = No_keywords fn; docstring }
 
@@ -106,7 +104,7 @@ let wrap t obj =
 let make ?to_string_repr ?to_string ?eq ?init name ~methods =
   let id = Id.create () in
   let t =
-    let wrap, unwrap = Py.Capsule.make (Printf.sprintf !"%s-%{Id}" name id) in
+    let wrap, unwrap = Py.Capsule.make (Printf.sprintf "%s-%s" name (Id.to_string id)) in
     { wrap; unwrap; cls_object = None; name }
   in
   let methods =
@@ -151,7 +149,7 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
             try fn t ~self:(unwrap_exn t self, self) ~args with
             | Py.Err _ as pyerr -> raise pyerr
             | exn ->
-              let msg = Printf.sprintf !"ocaml error %{Exn#mach}" exn in
+              let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
               raise (Py.Err (ValueError, msg)))
         | With_keywords fn ->
           Py.Callable.of_function_with_keywords ?docstring (fun args keywords ->
@@ -164,14 +162,14 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
             with
             | Py.Err _ as pyerr -> raise pyerr
             | exn ->
-              let msg = Printf.sprintf !"ocaml error %{Exn#mach}" exn in
+              let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
               raise (Py.Err (ValueError, msg)))
       in
       name, fn)
   in
   let init =
     let fn =
-      let docstring = Option.bind init ~f:Init.docstring in
+      let docstring = Option.bind init ~f:(fun i -> i.Init.docstring) in
       Py.Callable.of_function_as_tuple ?docstring (fun tuple ->
         try
           let self, args =
@@ -189,7 +187,7 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
         with
         | Py.Err _ as pyerr -> raise pyerr
         | exn ->
-          let msg = Printf.sprintf !"ocaml error %{Exn#mach}" exn in
+          let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
           raise (Py.Err (ValueError, msg)))
     in
     "__init__", fn

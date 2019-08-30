@@ -37,7 +37,7 @@ let wrap_ocaml_errors f =
   try f () with
   | Py.Err _ as pyerr -> raise pyerr
   | exn ->
-    let msg = Printf.sprintf !"ocaml error %{Exn#mach}" exn in
+    let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
     raise (Py.Err (ValueError, msg))
 ;;
 
