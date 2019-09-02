@@ -41,6 +41,12 @@ module Method : sig
     -> string
     -> ('a cls -> self:'a * pyobject -> pyobject Defunc.t)
     -> 'a t
+
+  val no_arg
+    :  ?docstring:string
+    -> string
+    -> ('a cls -> self:'a * pyobject -> pyobject)
+    -> 'a t
 end
 
 val make

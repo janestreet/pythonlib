@@ -75,6 +75,15 @@ module Method = struct
     in
     create_with_keywords ?docstring name fn
   ;;
+
+  let no_arg ?docstring name fn =
+    let fn cls ~self ~args ~keywords =
+      if not (List.is_empty args) then value_errorf "no argument expected";
+      if not (Map.is_empty keywords) then value_errorf "no keyword argument expected";
+      fn cls ~self
+    in
+    create_with_keywords ?docstring name fn
+  ;;
 end
 
 let wrap_capsule t obj = t.wrap obj
