@@ -209,10 +209,28 @@ module Param = struct
   let string = Of_python.create ~type_name:"string" ~conv:string_of_python
   let pyobject = Of_python.create ~type_name:"obj" ~conv:Fn.id
 
+  let check_tuple_len pyobject ~expected_length =
+    if not (Py.Tuple.check pyobject)
+    then
+      Printf.failwithf
+        "expected a tuple got %s"
+        (Py.Type.get pyobject |> Py.Type.name)
+        ();
+    let length = Py.Tuple.size pyobject in
+    if expected_length <> length
+    then
+      Printf.failwithf
+        "expected a tuple with %d elements, got %d"
+        expected_length
+        length
+        ()
+  ;;
+
   let pair (o1 : _ Of_python.t) (o2 : _ Of_python.t) =
     Of_python.create
       ~type_name:(Printf.sprintf "(%s, %s)" o1.type_name o2.type_name)
       ~conv:(fun pyobject ->
+        check_tuple_len pyobject ~expected_length:2;
         let p1, p2 = Py.Tuple.to_tuple2 pyobject in
         o1.conv p1, o2.conv p2)
   ;;
@@ -221,6 +239,7 @@ module Param = struct
     Of_python.create
       ~type_name:(Printf.sprintf "(%s, %s, %s)" o1.type_name o2.type_name o3.type_name)
       ~conv:(fun pyobject ->
+        check_tuple_len pyobject ~expected_length:3;
         let p1, p2, p3 = Py.Tuple.to_tuple3 pyobject in
         o1.conv p1, o2.conv p2, o3.conv p3)
   ;;
@@ -240,6 +259,12 @@ module Param = struct
     Of_python.create
       ~type_name:(Printf.sprintf "[%s]" o.type_name)
       ~conv:(One_or_tuple_or_list.t_of_python o.conv)
+  ;;
+
+  let one_or_tuple_or_list_relaxed (o : _ Of_python.t) =
+    Of_python.create
+      ~type_name:(Printf.sprintf "[%s] (relaxed)" o.type_name)
+      ~conv:(One_or_tuple_or_list_or_error.t_of_python o.conv ~type_name:o.type_name)
   ;;
 
   let dict ~(key : _ Of_python.t) ~(value : _ Of_python.t) =
