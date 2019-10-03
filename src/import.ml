@@ -40,7 +40,22 @@ module One_or_tuple = struct
   ;;
 end
 
-let is_list_type p = Py.List.check p || Py.Iter.check p
+let to_iterable p =
+  if Py.List.check p
+  then Some p
+  else (
+    match get_class p with
+    | Some "Series" ->
+      let p =
+        Py.Module.get_function_with_keywords
+          p
+          "tolist"
+          [||]
+          []
+      in
+      Some p
+    | _ -> if Py.Iter.check p then Some p else None)
+;;
 
 module One_or_tuple_or_list = struct
   (* 'a should not be encoded as a python tuple, list or none! *)
@@ -51,9 +66,9 @@ module One_or_tuple_or_list = struct
   let t_of_python a_of_python p =
     try One_or_tuple.t_of_python a_of_python p with
     | _ ->
-      if is_list_type p
-      then Py.List.to_list_map a_of_python p
-      else failwith "incorrect python type"
+      (match to_iterable p with
+       | Some l -> Py.List.to_list_map a_of_python l
+       | None -> failwith "incorrect python type")
   ;;
 end
 
@@ -85,13 +100,13 @@ module One_or_tuple_or_list_or_error = struct
     match One_or_tuple.t_of_python a_of_python p with
     | v -> List.map v ~f:(fun v -> Ok v)
     | exception _ ->
-      if is_list_type p
-      then
-        Py.List.to_list_map
-          (fun p ->
-             Or_error_python.t_of_python a_of_python p
-             |> Or_error.tag ~tag:("trying to parse as " ^ type_name))
-          p
-      else failwith "incorrect python type"
+      (match to_iterable p with
+       | Some p ->
+         Py.List.to_list_map
+           (fun p ->
+              Or_error_python.t_of_python a_of_python p
+              |> Or_error.tag ~tag:("trying to parse as " ^ type_name))
+           p
+       | None -> failwith "incorrect python type")
   ;;
 end
