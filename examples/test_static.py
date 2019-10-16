@@ -1,6 +1,6 @@
 from ctypes import *
 
-ocaml_library = './python_ocaml_static.so'
+ocaml_library = './python_ocaml_static.bc.so'
 
 # Load the DLL with OCaml embedded.
 # Note that we load it as [PyDll] rather than [CDLL] as the former keeps the GIL

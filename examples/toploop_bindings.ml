@@ -10,6 +10,7 @@ module F = Format
 open Base
 open Python_lib
 open Python_lib.Let_syntax
+module Topdirs = Opttopdirs
 module Toploop = Opttoploop
 module Typerep = Typerep_lib.Std.Typerep
 
@@ -19,7 +20,6 @@ let maybe_initialize () =
   if not !is_initialized
   then (
     is_initialized := true;
-    Clflags.native_code := true;
     Clflags.debug := true;
     Clflags.verbose := false;
     Warnings.parse_options false "-58";
@@ -181,7 +181,7 @@ let register_module ~module_name =
     [%map_open
       let dir = positional "dir" string ~docstring:"directory to add" in
       if !is_initialized then failwith "can only add directories before initialization.";
-      Opttopdirs.dir_directory dir]
+      Topdirs.dir_directory dir]
     ~docstring:
       {|
     Adds a new top-level directory in the cmi search path.
