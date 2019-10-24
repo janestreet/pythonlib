@@ -38,6 +38,7 @@ module Param : sig
     -> ('a * 'b * 'c) Of_python.t
 
   val list : 'a Of_python.t -> 'a list Of_python.t
+  val list_or_iter : 'a Of_python.t -> 'a list Of_python.t
   val one_or_tuple_or_list : 'a Of_python.t -> 'a list Of_python.t
 
   (* [one_or_tuple_or_list_relaxed] can be used to allow individual items in a list to
