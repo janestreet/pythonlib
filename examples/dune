@@ -1,4 +1,4 @@
 (executables (names python_ocaml_static)
  (preprocess (pps ppx_let ppx_python)) (modes byte shared_object)
  (flags :standard -linkall)
- (libraries base compiler-libs.opttoplevel pyml python_lib))
+ (libraries base compiler-libs.toplevel pyml python_lib))

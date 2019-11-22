@@ -23,6 +23,7 @@ val set_function_with_keywords
 
 val set : t -> ?docstring:string -> string -> pyobject Defunc.t -> unit
 val set_unit : t -> ?docstring:string -> string -> unit Defunc.t -> unit
+val set_no_arg : t -> ?docstring:string -> string -> (unit -> pyobject) -> unit
 
 (* Helper function to get keywords from a python object.
    When no keyword is present, null is used; otherwise a

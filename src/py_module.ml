@@ -76,3 +76,12 @@ let set_unit t ?docstring name defunc =
     Defunc.apply defunc args kwargs;
     Py.none)
 ;;
+
+let set_no_arg t ?docstring name fn =
+  set_function_with_keywords t ?docstring name (fun args keywords ->
+    if not (Array.is_empty args)
+    then value_errorf "no positional argument expected (got %d)" (Array.length args);
+    if not (Map.is_empty keywords)
+    then value_errorf "no keyword argument expected (got %d)" (Map.length keywords);
+    fn ())
+;;

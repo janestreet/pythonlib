@@ -10,8 +10,6 @@ module F = Format
 open Base
 open Python_lib
 open Python_lib.Let_syntax
-module Topdirs = Opttopdirs
-module Toploop = Opttoploop
 module Typerep = Typerep_lib.Std.Typerep
 
 let is_initialized = ref false
