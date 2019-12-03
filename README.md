@@ -24,23 +24,18 @@ let approx_pi =
 let () =
   if not (Py.is_initialized ())
   then Py.initialize ();
-  let mod_ = Py_module.create "ocaml_module" in
+  let mod_ = Py_module.create "example_module" in
   Py_module.set mod_ "approx_pi" approx_pi
 ```
 
-This code is compiled to a static library `python_ocaml_static.so`.
-The python code then loads this library, starts the ocaml runtime which results
-in creating the `ocaml_module` module, and then uses the `approx_pi` function.
+This code is compiled to a static library `ocaml.so`, together with a small
+C library defining the `PyInit_ocaml` function that starts the ocaml runtime
+and exposes the example module.
+The python code then imports this library and can use the ocaml functions.
 
 ```python
-# Load the static library containing the ocaml runtime and functions.
-from ctypes import *
-ocaml_library = './python_ocaml_static.so'
-ocaml = PyDLL(ocaml_library, RTLD_GLOBAL)
-argv_t = c_char_p * 2
-argv = argv_t(ocaml_library.encode('utf-8'), None)
-# Start the ocaml runtime.
-ocaml.caml_startup(argv)
+# This requires the ocaml.bc.so file to be copied as ocaml.so in the python path
+from ocaml import example_module, toploop
 
 # Import the module defined in the ocaml code and run the function.
 import ocaml_module

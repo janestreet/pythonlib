@@ -16,7 +16,7 @@ depends: [
   "ppx_python"
   "stdio"
   "typerep"
-  "dune"       {>= "1.5.1"}
+  "dune"       {>= "2.0.0"}
   "pyml"       {>= "20190626"}
 ]
 synopsis: "A library to help writing wrappers around ocaml code for python"

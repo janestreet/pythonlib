@@ -41,10 +41,10 @@ let approx_pi =
 
 let () =
   if not (Py.is_initialized ()) then Py.initialize ();
-  let mod_ = Py_module.create "ocaml_module" in
+  let mod_ = Py_module.create "example_module" in
   Py_module.set mod_ "add" add;
   Py_module.set mod_ "make_t" make_t;
   Py_module.set mod_ "cartesian_product" cartesian_product;
   Py_module.set mod_ "approx_pi" approx_pi;
-  Toploop_bindings.register_module ~module_name:"ocaml_toploop"
+  Toploop_bindings.register_module ~module_name:"toploop"
 ;;

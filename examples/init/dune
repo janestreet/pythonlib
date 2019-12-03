@@ -1,0 +1,3 @@
+(library (name python_ocaml_init) (c_names python_init)
+ (c_flags -w -fPIC -Wall -O2 -I /usr/include/python3.6m) (libraries)
+ (flags :standard -linkall) (preprocess (pps ppx_jane ppx_python)))
