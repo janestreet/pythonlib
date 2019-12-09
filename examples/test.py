@@ -2,8 +2,10 @@
 # current directory so that the import could work.
 import os
 import shutil
+import sys
 for src in ['ocaml.bc.so', '_build/default/examples/ocaml.bc.so']:
   if os.path.exists(src): shutil.copyfile(src, 'ocaml.so')
+sys.path.append('.')
 from ocaml import example_module, toploop
 
 print(example_module.add(42, 42))

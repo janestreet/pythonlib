@@ -32,14 +32,14 @@ let exn_to_string exn ~code =
   let print_loc _ _report ppf (location : Location.t) =
     F.fprintf
       ppf
-      "ocaml evaluation error on lines %d:%d to %d:%d"
+      "ocaml evaluation error on lines %d:%d to %d:%d\n"
       location.loc_start.pos_lnum
       location.loc_start.pos_cnum
       location.loc_end.pos_lnum
       location.loc_end.pos_cnum
   in
+  let default_printer = Location.default_report_printer () in
   let report report_printer report ppf x =
-    report_printer.Location.pp_main_txt report_printer report ppf x;
     let location = report.Location.main.loc in
     F.pp_print_newline ppf ();
     let min_line_number = location.loc_start.pos_lnum - 5 in
@@ -61,12 +61,13 @@ let exn_to_string exn ~code =
         Some (Printf.sprintf "%s%3d: %s" marker lnum line))
       else None)
     |> String.concat ~sep:"\n"
-    |> F.pp_print_string ppf
+    |> F.pp_print_string ppf;
+    F.pp_print_newline ppf ();
+    default_printer.Location.pp_main_txt report_printer report ppf x
   in
   let buffer = Buffer.create 256 in
   let formatter = F.formatter_of_buffer buffer in
   let report_printer () : Location.report_printer =
-    let default_printer = Location.default_report_printer () in
     { default_printer with
       Location.pp_main_loc = print_loc
     ; pp_submsg_loc = print_loc
