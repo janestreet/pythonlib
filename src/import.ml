@@ -46,13 +46,48 @@ let to_iterable p =
   else (
     match get_class p with
     | Some "Series" ->
-      let p =
-        Py.Module.get_function_with_keywords
-          p
-          "tolist"
-          [||]
-          []
-      in
+      (* [Py.List.to_list] assumes the python object to follow the
+         PySequence[1] protocol. Most importantly, it expects the python object
+         to implement the PySequence_GetItem[2] C function which is used to
+         access individual elements.
+
+         [Py.List.to_list] fails for a Series object that is sliced to represent a non
+         contiguous layout (such as by doing series[::2] in python). Because a pandas
+         Series object does not follow the PySequence protocol, we cannot use the
+         [Py.List] module to access its individual elements or iterate over it. Even in
+         Python, we cannot use the construct series[i] (where i is the index) to access
+         its individual elements. The recommended way to access individual elements in
+         Python is to use its [iloc] or [at] attributes.
+
+         It may help to know that iterating over sequence in python using the [for ... in
+         ...] syntax works by first obtaining an iterator to that sequence using the
+         python builtin function [iter].
+
+         In OCaml, we can similarly use the [Py.Iter] module to iterate over the Series
+         object, if we first obtain an iterator to it, using [Py.Object.get_iter]. This is
+         one way we can interface with a pandas Series in OCaml. Some other alternatives
+         include:
+
+         1. converting to a python list (using the [Series.tolist] method)
+         2. converting to a numpy array (using the [Series.to_numpy] method)
+         3. converting to a pandas array (using the [Series.array] attribute)
+
+         Our profiling results (as of Dec 4, 2019) indicate that converting to a python
+         list is ~60% faster than converting to a numpy array (next best alternative).
+
+         It was interesting to observe that [Py.List.to_list] works as expected for a
+         Series that is not sliced. But fails for sliced series with non contiguous
+         elements. However, for correctness guarantees and performance reasons, we went
+         ahead with converting the series to a python list before calling
+         [Py.List.to_list_map].
+
+         References:
+
+         [1] https://docs.python.org/3.6/c-api/sequence.html
+         [2] https://docs.python.org/3.6/c-api/sequence.html#c.PySequence_GetItem
+         [3] https://github.com/pandas-dev/pandas/issues/30042
+      *)
+      let p = Py.Module.get_function_with_keywords p "tolist" [||] [] in
       Some p
     | _ -> if Py.Iter.check p then Some p else None)
 ;;
