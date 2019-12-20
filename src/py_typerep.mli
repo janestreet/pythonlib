@@ -29,13 +29,6 @@ val python_to_ocaml : 'a Typerep.t -> pyobject -> 'a
 *)
 val parse : string -> Typerep.packed
 
-(** [parse_maybe_fn str] parses an ocaml like string into a type representation.
-    [str] can include at most one arrow (in which case [`fn] is returned).
-*)
-val parse_maybe_fn
-  :  string
-  -> [ `fn of Typerep.packed * Typerep.packed | `value of Typerep.packed ]
-
 (** [register_named_type ~name ~ocaml_type] registers a named type that can be used
     in [parse] with name [name].
     Values for this type will be type checked to match [ocaml_type] which should be
@@ -44,3 +37,5 @@ val parse_maybe_fn
     A capsule is used to send and receive values to/from python.
 *)
 val register_named_type : name:string -> ocaml_type:string -> unit
+
+val of_type : Type.t -> Typerep.packed

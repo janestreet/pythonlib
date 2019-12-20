@@ -109,7 +109,7 @@ let rec to_ocaml : type a. a Typerep.t -> string = function
   | Bytes -> failwith "not supported"
   | Lazy _ -> failwith "not supported"
   | Ref _ -> failwith "not supported"
-  | Function _ -> failwith "not supported"
+  | Function (t1, t2) -> Printf.sprintf "%s -> %s" (to_ocaml t1) (to_ocaml t2)
   | Record _ -> failwith "not supported"
   | Variant _ -> failwith "not supported"
   | Named (named, _) ->
@@ -120,7 +120,23 @@ and tuple_to_ocaml strs =
   List.map strs ~f:(fun s -> Printf.sprintf "(%s)" s) |> String.concat ~sep:" * "
 ;;
 
-(* Caution: this assumes that [obj] has the type represented by [t]. *)
+let check o ~name ~check =
+  if not (check o)
+  then Printf.failwithf "expected %s, got %s" name (Py.Type.get o |> Py.Type.name) ()
+;;
+
+let check_tuple pyobject ~n =
+  check pyobject ~name:"tuple" ~check:Py.Tuple.check;
+  let size = Py.Tuple.size pyobject in
+  if size <> n then Printf.failwithf "expected a tuple of size %d, got %d" n size ()
+;;
+
+let protect ~f x =
+  try f x with
+  | Py.Err _ as err -> raise err
+  | exn -> raise (Py.Err (SyntaxError, Exn.to_string exn))
+;;
+
 let rec ocaml_to_python : type a. a Typerep.t -> a -> pyobject =
   fun t o ->
   match t with
@@ -164,41 +180,78 @@ let rec ocaml_to_python : type a. a Typerep.t -> a -> pyobject =
   | Bytes -> failwith "not supported"
   | Lazy _ -> failwith "not supported"
   | Ref _ -> failwith "not supported"
-  | Function _ -> failwith "not supported"
+  | Function (t1, t2) ->
+    Py.Callable.of_function
+      ~docstring:(to_ocaml t)
+      (protect ~f:(fun pyobjects ->
+         let pyobject =
+           match pyobjects with
+           | [||] -> Py.none
+           | [| pyobject |] -> pyobject
+           | array -> Py.Tuple.of_array array
+         in
+         python_to_ocaml t1 pyobject |> o |> ocaml_to_python t2))
   | Record _ -> failwith "not supported"
   | Variant _ -> failwith "not supported"
   | Named (named, _) ->
     let name = Typerep.Named.typename_of_t named |> Typerep_lib.Typename.name in
     Named_types.ocaml_to_python t o ~name
-;;
 
-let rec python_to_ocaml : type a. a Typerep.t -> pyobject -> a =
+and python_to_ocaml : type a. a Typerep.t -> pyobject -> a =
   fun t pyobj ->
   match t with
-  | Unit -> ()
-  | Int -> Py.Int.to_int pyobj
-  | String -> Py.String.to_string pyobj
-  | Float -> Py.Float.to_float pyobj
-  | Bool -> Py.Bool.to_bool pyobj
+  | Unit -> check pyobj ~name:"none" ~check:Py.is_none
+  | Int ->
+    (* We cannot use Py.Int.check as it actually checks for the type
+       being Long rather than Int. *)
+    check pyobj ~name:"int" ~check:(fun o ->
+      match Py.Type.get o with
+      | Int | Long -> true
+      | _ -> false);
+    Py.Int.to_int pyobj
+  | String ->
+    check pyobj ~name:"string" ~check:Py.String.check;
+    Py.String.to_string pyobj
+  | Float ->
+    check pyobj ~name:"float" ~check:(fun o ->
+      match Py.Type.get o with
+      | Int | Long | Float -> true
+      | _ -> false);
+    Py.Float.to_float pyobj
+  | Bool ->
+    check pyobj ~name:"bool" ~check:Py.Bool.check;
+    Py.Bool.to_bool pyobj
   | Option t ->
     (match Py.Type.get pyobj with
      | None | Null -> None
      | _ -> Some (python_to_ocaml t pyobj))
-  | List t -> Py.List.to_list_map (python_to_ocaml t) pyobj
-  | Array t -> Py.List.to_array_map (python_to_ocaml t) pyobj
+  | List t ->
+    check pyobj ~name:"list" ~check:Py.List.check;
+    Py.List.to_list_map (python_to_ocaml t) pyobj
+  | Array t ->
+    check pyobj ~name:"list" ~check:Py.List.check;
+    Py.List.to_array_map (python_to_ocaml t) pyobj
   | Tuple (T2 (t1, t2)) ->
+    (* This check avoids a segfault as getting items from non-tuples return null.
+
+       (The reason we check in the other case is for better error messages and possible
+       future changes.)  *)
+    check_tuple pyobj ~n:2;
     let p1, p2 = Py.Tuple.to_tuple2 pyobj in
     python_to_ocaml t1 p1, python_to_ocaml t2 p2
   | Tuple (T3 (t1, t2, t3)) ->
+    check_tuple pyobj ~n:3;
     let p1, p2, p3 = Py.Tuple.to_tuple3 pyobj in
     python_to_ocaml t1 p1, python_to_ocaml t2 p2, python_to_ocaml t3 p3
   | Tuple (T4 (t1, t2, t3, t4)) ->
+    check_tuple pyobj ~n:4;
     let p1, p2, p3, p4 = Py.Tuple.to_tuple4 pyobj in
     ( python_to_ocaml t1 p1
     , python_to_ocaml t2 p2
     , python_to_ocaml t3 p3
     , python_to_ocaml t4 p4 )
   | Tuple (T5 (t1, t2, t3, t4, t5)) ->
+    check_tuple pyobj ~n:5;
     let p1, p2, p3, p4, p5 = Py.Tuple.to_tuple5 pyobj in
     ( python_to_ocaml t1 p1
     , python_to_ocaml t2 p2
@@ -212,7 +265,16 @@ let rec python_to_ocaml : type a. a Typerep.t -> pyobject -> a =
   | Bytes -> failwith "not supported"
   | Lazy _ -> failwith "not supported"
   | Ref _ -> failwith "not supported"
-  | Function _ -> failwith "not supported"
+  | Function ((Tuple _ as t1), t2) ->
+    check pyobj ~name:"callable" ~check:Py.Callable.check;
+    protect ~f:(fun x ->
+      ocaml_to_python t1 x
+      |> Py.Callable.to_function_as_tuple pyobj
+      |> python_to_ocaml t2)
+  | Function (t1, t2) ->
+    check pyobj ~name:"callable" ~check:Py.Callable.check;
+    protect ~f:(fun x ->
+      [| ocaml_to_python t1 x |] |> Py.Callable.to_function pyobj |> python_to_ocaml t2)
   | Record _ -> failwith "not supported"
   | Variant _ -> failwith "not supported"
   | Named (named, _) ->
@@ -247,117 +309,6 @@ let%expect_test "obj" =
   [%expect {| (3.140000 42 ()) (2.718280 1337 test true) |}]
 ;;
 
-(* This is used by the parser below, it's similar to [String.split] except that no
-   split is performed on characters that are within parenthesis blocks.
-*)
-let split_on_unescaped str ~on =
-  let par = ref 0 in
-  String.to_list str
-  |> List.groupi ~break:(fun _ c1 _ ->
-    match c1 with
-    | '(' ->
-      Int.incr par;
-      false
-    | ')' ->
-      Int.decr par;
-      false
-    | _ -> Char.( = ) c1 on && !par = 0)
-  |> List.filter_map ~f:(fun cs ->
-    let cs =
-      String.of_char_list cs
-      |> String.strip ~drop:(fun c -> Char.is_whitespace c || Char.( = ) c on)
-    in
-    if String.is_empty cs then None else Some cs)
-;;
-
-let%expect_test "split" =
-  if not (Py.is_initialized ()) then Py.initialize ();
-  List.iteri
-    [ "a"; "a*bc"; "a*bc*d*()*a"; "a*(b*(c))*d"; "((a)*b)*c" ]
-    ~f:(fun index str ->
-      let strs = split_on_unescaped str ~on:'*' in
-      Stdio.printf "%d %s\n%!" index (String.concat strs ~sep:" "));
-  [%expect
-    {|
-        0 a
-        1 a bc
-        2 a bc d () a
-        3 a (b*(c)) d
-        4 ((a)*b) c |}]
-;;
-
-(* Hacky type parser. *)
-let parse str =
-  let rec parse_expr : string -> Typerep.packed =
-    fun str ->
-      let str = String.strip str in
-      if Char.( = ) str.[0] '(' && Char.( = ) str.[String.length str - 1] ')'
-      then String.sub str ~pos:1 ~len:(String.length str - 2) |> parse_expr
-      else (
-        match str with
-        | "unit" -> T Unit
-        | "int" -> T Int
-        | "float" -> T Float
-        | "bool" -> T Bool
-        | "string" -> T String
-        | str when Named_types.mem str -> Named_types.typerep_exn str
-        | str ->
-          (match split_on_unescaped str ~on:'*' with
-           | [] -> failwith "empty type"
-           | [ s1 ] ->
-             (match split_on_unescaped s1 ~on:' ' with
-              | [] -> failwith "empty type"
-              | [ p ] -> Printf.failwithf "unknown type %s" p ()
-              | p :: q ->
-                List.fold q ~init:(parse_expr p) ~f:(fun (T acc) ->
-                  function
-                  | "list" -> T (List acc)
-                  | "array" -> T (Array acc)
-                  | "option" -> T (Option acc)
-                  | otherwise -> Printf.failwithf "not a type constructor %s" otherwise ()))
-           | [ s1; s2 ] ->
-             let (T t1) = parse_expr s1 in
-             let (T t2) = parse_expr s2 in
-             T (Tuple (T2 (t1, t2)))
-           | [ s1; s2; s3 ] ->
-             let (T t1) = parse_expr s1 in
-             let (T t2) = parse_expr s2 in
-             let (T t3) = parse_expr s3 in
-             T (Tuple (T3 (t1, t2, t3)))
-           | [ s1; s2; s3; s4 ] ->
-             let (T t1) = parse_expr s1 in
-             let (T t2) = parse_expr s2 in
-             let (T t3) = parse_expr s3 in
-             let (T t4) = parse_expr s4 in
-             T (Tuple (T4 (t1, t2, t3, t4)))
-           | [ s1; s2; s3; s4; s5 ] ->
-             let (T t1) = parse_expr s1 in
-             let (T t2) = parse_expr s2 in
-             let (T t3) = parse_expr s3 in
-             let (T t4) = parse_expr s4 in
-             let (T t5) = parse_expr s5 in
-             T (Tuple (T5 (t1, t2, t3, t4, t5)))
-           | tuple ->
-             Printf.failwithf
-               "tuples of length greater than 5 (%d) are not supported"
-               (List.length tuple)
-               ()))
-  in
-  parse_expr str
-;;
-
-let parse_maybe_fn str =
-  match String.substr_index_all str ~may_overlap:false ~pattern:"->" with
-  | [] -> `value (parse str)
-  | [ index ] ->
-    let lhs = String.sub str ~pos:0 ~len:index |> parse in
-    let rhs =
-      String.sub str ~pos:(index + 2) ~len:(String.length str - index - 2) |> parse
-    in
-    `fn (lhs, rhs)
-  | _ :: _ :: _ -> Printf.failwithf "unable to parse type %s" str ()
-;;
-
 let register_named_type ~name ~ocaml_type =
   match Named_types.find_ocaml_type ~name with
   | Some otype when String.( = ) ocaml_type otype ->
@@ -370,6 +321,56 @@ let register_named_type ~name ~ocaml_type =
       Py.Capsule.make (Printf.sprintf "%s-%s" name ocaml_type)
     in
     Named_types.register_exn ~name ~ocaml_type ~python_to_ocaml ~ocaml_to_python
+;;
+
+let rec of_type : Type.t -> Typerep.packed = function
+  | Atom "unit" -> T Unit
+  | Atom "int" -> T Int
+  | Atom "float" -> T Float
+  | Atom "bool" -> T Bool
+  | Atom "string" -> T String
+  | Atom str when Named_types.mem str -> Named_types.typerep_exn str
+  | Atom str -> Printf.failwithf "unknown type %s" str ()
+  | Tuple2 (t1, t2) ->
+    let (T t1) = of_type t1 in
+    let (T t2) = of_type t2 in
+    T (Tuple (T2 (t1, t2)))
+  | Tuple3 (t1, t2, t3) ->
+    let (T t1) = of_type t1 in
+    let (T t2) = of_type t2 in
+    let (T t3) = of_type t3 in
+    T (Tuple (T3 (t1, t2, t3)))
+  | Tuple4 (t1, t2, t3, t4) ->
+    let (T t1) = of_type t1 in
+    let (T t2) = of_type t2 in
+    let (T t3) = of_type t3 in
+    let (T t4) = of_type t4 in
+    T (Tuple (T4 (t1, t2, t3, t4)))
+  | Tuple5 (t1, t2, t3, t4, t5) ->
+    let (T t1) = of_type t1 in
+    let (T t2) = of_type t2 in
+    let (T t3) = of_type t3 in
+    let (T t4) = of_type t4 in
+    let (T t5) = of_type t5 in
+    T (Tuple (T5 (t1, t2, t3, t4, t5)))
+  | Arrow (t1, t2) ->
+    let (T t1) = of_type t1 in
+    let (T t2) = of_type t2 in
+    T (Function (t1, t2))
+  | Apply (t, "list") ->
+    let (T t) = of_type t in
+    T (List t)
+  | Apply (t, "array") ->
+    let (T t) = of_type t in
+    T (Array t)
+  | Apply (t, "option") ->
+    let (T t) = of_type t in
+    T (Option t)
+  | Apply (_t, str) -> Printf.failwithf "unknown type %s" str ()
+;;
+
+let parse str =
+  Type_parser.type_expr Type_lexer.token (Lexing.from_string str) |> of_type
 ;;
 
 let%expect_test "parse-type" =
@@ -386,12 +387,8 @@ let%expect_test "parse-type" =
     ; "(((int array list) option)) array -> (((string array)) array)"
     ]
     ~f:(fun index str ->
-      let str =
-        match parse_maybe_fn str with
-        | `fn (T t1, T t2) -> Printf.sprintf "%s -> %s" (to_ocaml t1) (to_ocaml t2)
-        | `value (T t) -> to_ocaml t
-      in
-      Stdio.printf "%d %s\n%!" index str);
+      let (T t) = parse str in
+      Stdio.printf "%d %s\n%!" index (to_ocaml t));
   [%expect
     {|
         0 unit

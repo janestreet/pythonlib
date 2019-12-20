@@ -25,7 +25,17 @@ let maybe_initialize () =
     Toploop.set_paths ();
     !Toploop.toplevel_startup_hook ();
     (* required for side-effect initialization in Topdirs *)
-    Toploop.initialize_toplevel_env ())
+    Toploop.initialize_toplevel_env ();
+    let lexing = Lexing.from_string "type pyobject;;" in
+    let phrases = !Toploop.parse_use_file lexing in
+    List.iter phrases ~f:(fun phrase ->
+      let ok = Toploop.execute_phrase false F.std_formatter phrase in
+      ignore (ok : bool));
+    Py_typerep.Named_types.register_exn
+      ~name:"pyobject"
+      ~ocaml_type:"pyobject"
+      ~python_to_ocaml:Fn.id
+      ~ocaml_to_python:Fn.id)
 ;;
 
 let exn_to_string exn ~code =
@@ -89,6 +99,7 @@ let toploop_eval str ~verbose =
       ignore (ok : bool));
     F.pp_print_flush F.std_formatter ()
   with
+  | Py.Err _ as err -> raise err
   | exn -> raise (Py.Err (SyntaxError, exn_to_string exn ~code:str))
 ;;
 
@@ -101,33 +112,57 @@ let toploop_eval_and_get typerep str =
     let obj = Toploop.eval_value_path !Toploop.toplevel_env path in
     Py_typerep.ocaml_to_python typerep (Caml.Obj.obj obj)
   in
-  let eval_and_get_fn (type a b) (lhs : a Typerep.t) (rhs : b Typerep.t) =
-    toploop_eval
-      ~verbose:false
-      (Printf.sprintf
-         "let out : %s -> %s = (%s);;"
-         (Py_typerep.to_ocaml lhs)
-         (Py_typerep.to_ocaml rhs)
-         str);
-    let path, _ = Env.lookup_value (Lident "out") !Toploop.toplevel_env in
-    let fn : a -> b =
-      Toploop.eval_value_path !Toploop.toplevel_env path |> Caml.Obj.obj
-    in
-    Py.Callable.of_function ~docstring:str (fun args ->
-      let args =
-        match args with
-        | [||] -> Py.none
-        | [| v |] -> v
-        | otherwise -> Py.Tuple.of_array otherwise
-      in
-      try
-        Py_typerep.python_to_ocaml lhs args |> fn |> Py_typerep.ocaml_to_python rhs
-      with
-      | exn -> raise (Py.Err (ValueError, Exn.to_string exn)))
-  in
-  match Py_typerep.parse_maybe_fn typerep with
-  | `value (T typerep) -> eval_value typerep
-  | `fn (T lhs, T rhs) -> eval_and_get_fn lhs rhs
+  let (T typerep) = Py_typerep.parse typerep in
+  eval_value typerep
+;;
+
+let rec of_type_expr : Types.type_expr -> Type.t =
+  fun type_expr ->
+  match type_expr.desc with
+  | Tconstr (path, [], _) -> Atom (Path.last path)
+  | Tconstr (path, [ td ], _) -> Apply (of_type_expr td, Path.last path)
+  | Tconstr (path, _, _) ->
+    raise
+      (Py.Err
+         ( SyntaxError
+         , Printf.sprintf "unsupported type %s with multiple parameters" (Path.last path)
+         ))
+  | Tarrow ((Nolabel | Labelled _), td1, td2, _c) ->
+    Arrow (of_type_expr td1, of_type_expr td2)
+  | Tarrow (Optional _, _td1, _td2, _c) ->
+    raise (Py.Err (SyntaxError, "optional arguments are not supported"))
+  | Ttuple [ td1; td2 ] -> Tuple2 (of_type_expr td1, of_type_expr td2)
+  | Ttuple [ td1; td2; td3 ] ->
+    Tuple3 (of_type_expr td1, of_type_expr td2, of_type_expr td3)
+  | Ttuple [ td1; td2; td3; td4 ] ->
+    Tuple4 (of_type_expr td1, of_type_expr td2, of_type_expr td3, of_type_expr td4)
+  | Ttuple [ td1; td2; td3; td4; td5 ] ->
+    Tuple5
+      ( of_type_expr td1
+      , of_type_expr td2
+      , of_type_expr td3
+      , of_type_expr td4
+      , of_type_expr td5 )
+  | Ttuple _ ->
+    raise (Py.Err (SyntaxError, Printf.sprintf "tuple with more than 5 arguments"))
+  | Tvar _ -> Atom "pyobject"
+  | Tlink td -> of_type_expr td
+  | Tsubst td -> of_type_expr td
+  | Tnil -> raise (Py.Err (SyntaxError, "unsupported type Tnil"))
+  | Tvariant _ -> raise (Py.Err (SyntaxError, "unsupported type Tvariant"))
+  | Tunivar _ -> raise (Py.Err (SyntaxError, "unsupported type Tunivar"))
+  | Tpoly (_, _) -> raise (Py.Err (SyntaxError, "unsupported type Tpoly"))
+  | Tpackage (_, _, _) -> raise (Py.Err (SyntaxError, "unsupported type Tpackage"))
+  | Tobject (_, _) -> raise (Py.Err (SyntaxError, "unsupported type Tobject"))
+  | Tfield (_, _, _, _) -> raise (Py.Err (SyntaxError, "unsupported type Tfield"))
+;;
+
+let toploop_eval_and_get_no_type str =
+  toploop_eval ~verbose:false (Printf.sprintf "let out = (%s);;" str);
+  let path, value_description = Env.lookup_value (Lident "out") !Toploop.toplevel_env in
+  let obj = Toploop.eval_value_path !Toploop.toplevel_env path in
+  let (T typerep) = of_type_expr value_description.val_type |> Py_typerep.of_type in
+  Py_typerep.ocaml_to_python typerep (Caml.Obj.obj obj)
 ;;
 
 let register_module ~module_name =
@@ -147,22 +182,23 @@ let register_module ~module_name =
     typechecked and evaluated in a toplevel.
     The global variable scope is shared between multiple calls to this function.
       |};
-  Py_module.set
+  Py_module.set_function
     modl
     "get"
-    [%map_open
-      let typerep = positional "typerep" string ~docstring:"typerep"
-      and str = positional "str" string ~docstring:"ocaml code to run" in
-      toploop_eval_and_get typerep str]
+    (function
+      | [| str |] -> Py.String.to_string str |> toploop_eval_and_get_no_type
+      | [| typerep; str |] ->
+        toploop_eval_and_get (Py.String.to_string typerep) (Py.String.to_string str)
+      | _ -> raise (Py.Err (SyntaxError, "expected one or two arguments")))
     ~docstring:
       {|
     Evaluates an ocaml expression and returns the result as a python object.
 
-    This takes two arguments. The first one is a type representation of the
-    object to be transfered from ocaml to python. The second one is a string
-    containing some ocaml code. This string is parsed, typechecked (its
-    type has to match the type argument) and evaluated in a toplevel in the
-    same way it is when running eval.
+    This takes one or two arguments. When two arguments are given, the first
+    one is a type representation of the object to be transfered from ocaml to
+    python. The second one is a string containing some ocaml code. This string
+    is parsed, typechecked (its type has to match the type argument) and
+    evaluated in a toplevel in the same way it is when running eval.
 
     Supported types can involve bool, int, string, float, list, option,
     only a single arrow is allowed in which case a function is returned.

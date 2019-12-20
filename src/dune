@@ -1,3 +1,7 @@
 (library (name python_lib) (public_name pythonlib)
  (libraries base pyml stdio typerep)
  (preprocess (pps ppx_expect ppx_python)))
+
+(ocamllex type_lexer)
+
+(ocamlyacc type_parser)
