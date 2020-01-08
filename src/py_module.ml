@@ -21,6 +21,7 @@ let create_with_eval ~name ~py_source =
 ;;
 
 let set_value = Py.Module.set
+let pyobject t = t
 
 let keywords_of_python pyobject =
   match Py.Type.get pyobject with

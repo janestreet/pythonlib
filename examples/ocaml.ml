@@ -39,6 +39,12 @@ let approx_pi =
   Float.sqrt (sum *. 6.) |> python_of_float
 ;;
 
+let map =
+  let%map_open list = positional "list" (list int) ~docstring:""
+  and fn = keyword "fn" (typerep (Function (Int, Int))) ~docstring:"" in
+  List.map list ~f:fn |> [%python_of: int list]
+;;
+
 let () =
   if not (Py.is_initialized ()) then Py.initialize ();
   let mod_ = Py_module.create "example_module" in
@@ -46,5 +52,6 @@ let () =
   Py_module.set mod_ "make_t" make_t;
   Py_module.set mod_ "cartesian_product" cartesian_product;
   Py_module.set mod_ "approx_pi" approx_pi;
+  Py_module.set mod_ "map" map;
   Toploop_bindings.register_module ~module_name:"toploop"
 ;;

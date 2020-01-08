@@ -18,6 +18,8 @@ print(example_module.cartesian_product([1, 2], [(3, 4), "5"]))
 
 print(example_module.approx_pi(1000))
 
+print(example_module.map(list(range(5)), fn=lambda x: x*x))
+
 toploop.eval('Printf.printf "hello from ocaml\n%!";;')
 ocaml_fn = toploop.get(
     '(int * string) list -> string list',

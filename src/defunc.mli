@@ -13,6 +13,7 @@ include Applicative.S with type 'a t := 'a t
 include Applicative.Let_syntax with type 'a t := 'a t
 
 val params_docstring : 'a t -> string option
+val no_arg : (unit -> 'a) -> 'a t
 
 val apply
   :  'a t
@@ -28,6 +29,7 @@ module Param : sig
   val float : float Of_python.t
   val bool : bool Of_python.t
   val string : string Of_python.t
+  val typerep : 'a Typerep_lib.Std.Typerep.t -> 'a Of_python.t
   val pyobject : pyobject Of_python.t
   val pair : 'a Of_python.t -> 'b Of_python.t -> ('a * 'b) Of_python.t
 
@@ -36,6 +38,21 @@ module Param : sig
     -> 'b Of_python.t
     -> 'c Of_python.t
     -> ('a * 'b * 'c) Of_python.t
+
+  val quadruple
+    :  'a Of_python.t
+    -> 'b Of_python.t
+    -> 'c Of_python.t
+    -> 'd Of_python.t
+    -> ('a * 'b * 'c * 'd) Of_python.t
+
+  val quintuple
+    :  'a Of_python.t
+    -> 'b Of_python.t
+    -> 'c Of_python.t
+    -> 'd Of_python.t
+    -> 'e Of_python.t
+    -> ('a * 'b * 'c * 'd * 'e) Of_python.t
 
   val list : 'a Of_python.t -> 'a list Of_python.t
   val list_or_iter : 'a Of_python.t -> 'a list Of_python.t

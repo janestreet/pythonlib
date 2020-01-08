@@ -116,52 +116,11 @@ let toploop_eval_and_get typerep str =
   eval_value typerep
 ;;
 
-let rec of_type_expr : Types.type_expr -> Type.t =
-  fun type_expr ->
-  match type_expr.desc with
-  | Tconstr (path, [], _) -> Atom (Path.last path)
-  | Tconstr (path, [ td ], _) -> Apply (of_type_expr td, Path.last path)
-  | Tconstr (path, _, _) ->
-    raise
-      (Py.Err
-         ( SyntaxError
-         , Printf.sprintf "unsupported type %s with multiple parameters" (Path.last path)
-         ))
-  | Tarrow ((Nolabel | Labelled _), td1, td2, _c) ->
-    Arrow (of_type_expr td1, of_type_expr td2)
-  | Tarrow (Optional _, _td1, _td2, _c) ->
-    raise (Py.Err (SyntaxError, "optional arguments are not supported"))
-  | Ttuple [ td1; td2 ] -> Tuple2 (of_type_expr td1, of_type_expr td2)
-  | Ttuple [ td1; td2; td3 ] ->
-    Tuple3 (of_type_expr td1, of_type_expr td2, of_type_expr td3)
-  | Ttuple [ td1; td2; td3; td4 ] ->
-    Tuple4 (of_type_expr td1, of_type_expr td2, of_type_expr td3, of_type_expr td4)
-  | Ttuple [ td1; td2; td3; td4; td5 ] ->
-    Tuple5
-      ( of_type_expr td1
-      , of_type_expr td2
-      , of_type_expr td3
-      , of_type_expr td4
-      , of_type_expr td5 )
-  | Ttuple _ ->
-    raise (Py.Err (SyntaxError, Printf.sprintf "tuple with more than 5 arguments"))
-  | Tvar _ -> Atom "pyobject"
-  | Tlink td -> of_type_expr td
-  | Tsubst td -> of_type_expr td
-  | Tnil -> raise (Py.Err (SyntaxError, "unsupported type Tnil"))
-  | Tvariant _ -> raise (Py.Err (SyntaxError, "unsupported type Tvariant"))
-  | Tunivar _ -> raise (Py.Err (SyntaxError, "unsupported type Tunivar"))
-  | Tpoly (_, _) -> raise (Py.Err (SyntaxError, "unsupported type Tpoly"))
-  | Tpackage (_, _, _) -> raise (Py.Err (SyntaxError, "unsupported type Tpackage"))
-  | Tobject (_, _) -> raise (Py.Err (SyntaxError, "unsupported type Tobject"))
-  | Tfield (_, _, _, _) -> raise (Py.Err (SyntaxError, "unsupported type Tfield"))
-;;
-
 let toploop_eval_and_get_no_type str =
   toploop_eval ~verbose:false (Printf.sprintf "let out = (%s);;" str);
   let path, value_description = Env.lookup_value (Lident "out") !Toploop.toplevel_env in
   let obj = Toploop.eval_value_path !Toploop.toplevel_env path in
-  let (T typerep) = of_type_expr value_description.val_type |> Py_typerep.of_type in
+  let (T typerep) = Type.of_type_expr value_description.val_type |> Py_typerep.of_type in
   Py_typerep.ocaml_to_python typerep (Caml.Obj.obj obj)
 ;;
 

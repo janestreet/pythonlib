@@ -69,6 +69,8 @@ let check_valid_arg_name name =
     else ())
 ;;
 
+let no_arg fn = return () |> map ~f:fn
+
 let apply (type a) (t : a t) args kwargs =
   let try_of_python v ~of_python ~name =
     try of_python.Of_python.conv v with
@@ -207,6 +209,21 @@ module Param = struct
   let float = Of_python.create ~type_name:"float" ~conv:float_of_python
   let bool = Of_python.create ~type_name:"bool" ~conv:bool_of_python
   let string = Of_python.create ~type_name:"string" ~conv:string_of_python
+
+  (* Rather than using typerep, it would be nice to have a [function] combinator
+     and let users write e.g [function (pair int int) int] for addition.
+
+     However when calling a (python) closure from ocaml with some parameters
+     these parameters will have to be converted from ocaml to python.
+     Currently [params] only handles the conversion from python to ocaml which is
+     problematic.
+  *)
+  let typerep tr =
+    Of_python.create
+      ~type_name:(Py_typerep.to_ocaml tr)
+      ~conv:(Py_typerep.python_to_ocaml tr)
+  ;;
+
   let pyobject = Of_python.create ~type_name:"obj" ~conv:Fn.id
 
   let check_tuple_len pyobject ~expected_length =
@@ -242,6 +259,48 @@ module Param = struct
         check_tuple_len pyobject ~expected_length:3;
         let p1, p2, p3 = Py.Tuple.to_tuple3 pyobject in
         o1.conv p1, o2.conv p2, o3.conv p3)
+  ;;
+
+  let quadruple
+        (o1 : _ Of_python.t)
+        (o2 : _ Of_python.t)
+        (o3 : _ Of_python.t)
+        (o4 : _ Of_python.t)
+    =
+    Of_python.create
+      ~type_name:
+        (Printf.sprintf
+           "(%s, %s, %s, %s)"
+           o1.type_name
+           o2.type_name
+           o3.type_name
+           o4.type_name)
+      ~conv:(fun pyobject ->
+        check_tuple_len pyobject ~expected_length:3;
+        let p1, p2, p3, p4 = Py.Tuple.to_tuple4 pyobject in
+        o1.conv p1, o2.conv p2, o3.conv p3, o4.conv p4)
+  ;;
+
+  let quintuple
+        (o1 : _ Of_python.t)
+        (o2 : _ Of_python.t)
+        (o3 : _ Of_python.t)
+        (o4 : _ Of_python.t)
+        (o5 : _ Of_python.t)
+    =
+    Of_python.create
+      ~type_name:
+        (Printf.sprintf
+           "(%s, %s, %s, %s, %s)"
+           o1.type_name
+           o2.type_name
+           o3.type_name
+           o4.type_name
+           o5.type_name)
+      ~conv:(fun pyobject ->
+        check_tuple_len pyobject ~expected_length:3;
+        let p1, p2, p3, p4, p5 = Py.Tuple.to_tuple5 pyobject in
+        o1.conv p1, o2.conv p2, o3.conv p3, o4.conv p4, o5.conv p5)
   ;;
 
   let list (o : _ Of_python.t) =

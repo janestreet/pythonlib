@@ -6,3 +6,5 @@ type t =
   | Tuple5 of t * t * t * t * t
   | Arrow of t * t
   | Apply of t * string
+
+val of_type_expr : Types.type_expr -> t
