@@ -17,7 +17,7 @@ open Type
 %%
 
 type_expr:
-| atom                                     { Atom $1}
+| atom                                     { Atom(Module_env.Path.empty, $1) }
 | LPAREN type_expr RPAREN                  { $2 }
 | type_expr_no_star STAR type_expr_no_star { Tuple2 ($1, $3) }
 | type_expr_no_star STAR type_expr_no_star STAR type_expr_no_star
@@ -26,7 +26,7 @@ type_expr:
   { Tuple4 ($1, $3, $5, $7) }
 | type_expr_no_star STAR type_expr_no_star STAR type_expr_no_star STAR type_expr_no_star STAR type_expr_no_star
   { Tuple5 ($1, $3, $5, $7, $9) }
-| type_expr ARROW type_expr { Arrow ($1, $3) }
+| type_expr ARROW type_expr { Arrow (Nolabel, $1, $3) }
 | type_expr_no_star atom    { Apply ($1, $2) }
 ;
 
@@ -34,7 +34,7 @@ type_expr:
     be parsed both [(a*b) * c] and as a triple [a * b *c].
 */
 type_expr_no_star:
-| atom                       { Atom $1}
+| atom                       { Atom(Module_env.Path.empty, $1) }
 | LPAREN type_expr RPAREN    { $2 }
 | type_expr_no_star atom     { Apply ($1, $2) }
 

@@ -324,13 +324,13 @@ let register_named_type ~name ~ocaml_type =
 ;;
 
 let rec of_type : Type.t -> Typerep.packed = function
-  | Atom "unit" -> T Unit
-  | Atom "int" -> T Int
-  | Atom "float" -> T Float
-  | Atom "bool" -> T Bool
-  | Atom "string" -> T String
-  | Atom str when Named_types.mem str -> Named_types.typerep_exn str
-  | Atom str -> Printf.failwithf "unknown type %s" str ()
+  | Atom (_, "unit") -> T Unit
+  | Atom (_, "int") -> T Int
+  | Atom (_, "float") -> T Float
+  | Atom (_, "bool") -> T Bool
+  | Atom (_, "string") -> T String
+  | Atom (_, str) when Named_types.mem str -> Named_types.typerep_exn str
+  | Atom (_, str) -> Printf.failwithf "unknown type %s" str ()
   | Tuple2 (t1, t2) ->
     let (T t1) = of_type t1 in
     let (T t2) = of_type t2 in
@@ -353,7 +353,7 @@ let rec of_type : Type.t -> Typerep.packed = function
     let (T t4) = of_type t4 in
     let (T t5) = of_type t5 in
     T (Tuple (T5 (t1, t2, t3, t4, t5)))
-  | Arrow (t1, t2) ->
+  | Arrow (_, t1, t2) ->
     let (T t1) = of_type t1 in
     let (T t2) = of_type t2 in
     T (Function (t1, t2))

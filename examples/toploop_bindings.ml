@@ -120,7 +120,11 @@ let toploop_eval_and_get_no_type str =
   toploop_eval ~verbose:false (Printf.sprintf "let out = (%s);;" str);
   let path, value_description = Env.lookup_value (Lident "out") !Toploop.toplevel_env in
   let obj = Toploop.eval_value_path !Toploop.toplevel_env path in
-  let (T typerep) = Type.of_type_expr value_description.val_type |> Py_typerep.of_type in
+  let (T typerep) =
+    Type.of_type_desc value_description.val_type.desc ~env:(Module_env.create ())
+    |> Or_error.ok_exn
+    |> Py_typerep.of_type
+  in
   Py_typerep.ocaml_to_python typerep (Caml.Obj.obj obj)
 ;;
 

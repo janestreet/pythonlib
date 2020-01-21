@@ -1,0 +1,14 @@
+(executables (names ocaml) (preprocess (pps ppx_let ppx_python))
+ (modes (byte shared_object)) (flags :standard -linkall)
+ (libraries base core_kernel pyml python_lib))
+
+(rule (targets date_bindings.ml gen_types.ml)
+ (deps (:first_dep ../python_gen.exe)
+  %{workspace_root}/lib/core_kernel/src/core_kernel__Date.cmi)
+ (action
+  (bash
+   "%{first_dep} ../../../../../lib/core_kernel/src/core_kernel__Date.cmi ./date_bindings.ml"))
+ (mode fallback))
+
+(alias (name feature-subtree-build)
+ (deps date_bindings.ml gen_types.ml ocaml.so))

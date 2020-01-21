@@ -1,0 +1,2 @@
+(executables (names python_gen) (preprocess (pps ppx_let ppx_python))
+ (libraries base compiler-libs.common pyml python_lib))

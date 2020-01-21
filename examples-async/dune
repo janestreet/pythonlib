@@ -1,0 +1,3 @@
+(executables (names ocaml_async) (preprocess (pps ppx_let ppx_python))
+ (modes (native shared_object)) (flags :standard -linkall)
+ (libraries base async pyml python_lib python_ocaml_init_async))
