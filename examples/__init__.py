@@ -14,7 +14,7 @@ def _register_ipython_magic():
 
     # [@register_line_magic] registers itself as a side effect thus
     # the immediate deletion following the definition
-    
+
     @register_line_magic
     def ocaml(line):
       with sys_pipes():
@@ -29,7 +29,7 @@ def _register_ipython_magic():
         return toploop.get(type_, body)
 
     del ocaml_t
-    
+
 
     @register_cell_magic
     def ocaml(line, cell):
