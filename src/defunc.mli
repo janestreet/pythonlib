@@ -4,7 +4,10 @@ open Import
 type _ t
 
 module Of_python : sig
-  type 'a t
+  type 'a t = private
+    { type_name : string
+    ; conv : pyobject -> 'a
+    }
 
   val create : type_name:string -> conv:(pyobject -> 'a) -> 'a t
 end
