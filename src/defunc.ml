@@ -27,6 +27,10 @@ module Opt_arg = struct
     }
 end
 
+module Docstring = struct
+  type t = string
+end
+
 module T0 = struct
   type _ t =
     | Return : 'a -> 'a t
@@ -34,6 +38,8 @@ module T0 = struct
     | Both : 'a t * 'b t -> ('a * 'b) t
     | Arg : 'a Arg.t -> 'a t
     | Opt_arg : 'a Opt_arg.t -> 'a option t
+    | Star_args : Docstring.t -> pyobject list t
+    | Star_kwargs : Docstring.t -> (string, pyobject, String.comparator_witness) Map.t t
 
   let return x = Return x
   let map t ~f = Map (t, f)
@@ -71,6 +77,16 @@ let check_valid_arg_name name =
 
 let no_arg fn = return () |> map ~f:fn
 
+module State = struct
+  type t =
+    { pos : int
+    ; after_star_args : bool
+    ; after_star_kwargs : bool
+    }
+
+  let init = { pos = 0; after_star_args = false; after_star_kwargs = false }
+end
+
 let apply (type a) (t : a t) args kwargs =
   let try_of_python v ~of_python ~name =
     try of_python.Of_python.conv v with
@@ -93,54 +109,82 @@ let apply (type a) (t : a t) args kwargs =
       | Arg { name; kind = `positional; _ } -> [ name ]
       | Arg { kind = `keyword _; _ } -> []
       | Opt_arg _ -> []
+      | Star_args _ -> [ "*args" ]
+      | Star_kwargs _ -> []
     in
     loop t
   in
-  let rec loop : type a. a t -> pos:int -> a * int =
-    fun t ~pos ->
+  let rec loop : type a. a t -> state:State.t -> a * State.t =
+    fun t ~state ->
       match t with
-      | Return a -> a, pos
+      | Return a -> a, state
       | Map (t, f) ->
-        let v, pos = loop t ~pos in
-        f v, pos
+        let v, state = loop t ~state in
+        f v, state
       | Both (t, t') ->
-        let v, pos = loop t ~pos in
-        let v', pos = loop t' ~pos in
-        (v, v'), pos
+        let v, state = loop t ~state in
+        let v', state = loop t' ~state in
+        (v, v'), state
       | Arg { name; of_python; docstring = _; kind = `positional } ->
+        if state.after_star_args
+        then value_errorf "positional argument after *args (%s)" name;
+        let pos = state.pos in
         if pos >= Array.length args
         then
           value_errorf
             "not enough arguments (got %d, expected %s)"
             (Array.length args)
             (positional_arguments () |> String.concat ~sep:", ");
-        try_of_python args.(pos) ~of_python ~name, pos + 1
+        try_of_python args.(pos) ~of_python ~name, { state with pos = pos + 1 }
       | Opt_arg { name; of_python; docstring = _ } ->
+        if state.after_star_kwargs
+        then value_errorf "keyword argument after **kwargs (%s)" name;
         if Hash_set.mem kwnames name
         then value_errorf "multiple keyword arguments with name %s" name;
         Hash_set.add kwnames name;
         let v = Map.find kwargs name in
-        Option.map v ~f:(try_of_python ~of_python ~name), pos
+        Option.map v ~f:(try_of_python ~of_python ~name), state
       | Arg { name; of_python; docstring = _; kind = `keyword default } ->
+        if state.after_star_kwargs
+        then value_errorf "keyword argument after **kwargs (%s)" name;
         if Hash_set.mem kwnames name
         then value_errorf "multiple keyword arguments with name %s" name;
         Hash_set.add kwnames name;
         (match Map.find kwargs name with
-         | Some v -> try_of_python v ~of_python ~name, pos
+         | Some v -> try_of_python v ~of_python ~name, state
          | None ->
            (match default with
-            | Some default -> default, pos
+            | Some default -> default, state
             | None -> value_errorf "missing keyword argument: %s" name))
+      | Star_args _docstring ->
+        if state.after_star_args then value_errorf "multiple *args";
+        let total_args_len = Array.length args in
+        let args =
+          Array.sub args ~pos:state.pos ~len:(Array.length args - state.pos)
+          |> Array.to_list
+        in
+        args, { state with pos = total_args_len; after_star_args = true }
+      | Star_kwargs _docstring ->
+        if state.after_star_kwargs then value_errorf "multiple **kwargs";
+        let remaining_kwargs =
+          Map.filter_keys kwargs ~f:(fun key ->
+            if Hash_set.mem kwnames key
+            then false
+            else (
+              Hash_set.add kwnames key;
+              true))
+        in
+        remaining_kwargs, { state with after_star_kwargs = true }
   in
-  let v, final_pos = loop t ~pos:0 in
+  let v, final_state = loop t ~state:State.init in
   Map.iter_keys kwargs ~f:(fun key ->
     if not (Hash_set.mem kwnames key)
     then value_errorf "unexpected keyword argument %s" key);
-  if final_pos <> Array.length args
+  if final_state.pos <> Array.length args
   then
     value_errorf
       "expected %d arguments (%s), got %d"
-      final_pos
+      final_state.pos
       (positional_arguments () |> String.concat ~sep:", ")
       (Array.length args);
   v
@@ -172,6 +216,8 @@ let params_docstring t =
     ]
     |> String.concat ~sep:"\n"
   in
+  let star_args_docstring doc = sprintf "    :param *args: %s" doc in
+  let star_kwargs_docstring doc = sprintf "    :param **kwargs: %s" doc in
   let rec loop : type a. a t -> pos:int -> string list * int =
     fun t ~pos ->
       match t with
@@ -184,6 +230,10 @@ let params_docstring t =
       | Arg ({ kind = `positional; _ } as arg) -> [ arg_docstring arg ~pos ], pos + 1
       | Arg ({ kind = `keyword _; _ } as arg) -> [ arg_docstring arg ~pos ], pos
       | Opt_arg opt_arg -> [ opt_arg_docstring opt_arg ], pos
+      | Star_args doc ->
+        (* There should be no other positional arg past this one *)
+        [ star_args_docstring doc ], Int.max_value_30_bits
+      | Star_kwargs doc -> [ star_kwargs_docstring doc ], pos
   in
   let params, _pos = loop t ~pos:0 in
   if List.is_empty params then None else String.concat params ~sep:"\n\n" |> Option.some
@@ -342,4 +392,7 @@ module Param = struct
       ~type_name:(Printf.sprintf "[%s: %s]" key.type_name value.type_name)
       ~conv:(Py.Dict.to_bindings_map key.conv value.conv)
   ;;
+
+  let star_args ~docstring = Star_args docstring
+  let star_kwargs ~docstring = Star_kwargs docstring
 end
