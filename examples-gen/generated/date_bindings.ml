@@ -595,6 +595,169 @@ module Days = struct
     Py_module.set modl "unix_epoch" (unix_epoch ());
     modl
 end;;
+module Option = struct
+  let compare () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> int *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.compare
+      positional_1
+      positional_2
+    |> python_of_int
+  ;;
+
+  let hash_fold_t () = (* Ppx_hash_lib.Std.Hash.state -> Core_kernel__Date.Option.t -> Ppx_hash_lib.Std.Hash.state *)
+    let%map_open
+      positional_1 = positional "positional_1" param_ppx_hash_lib__std__hash__state ~docstring:"Ppx_hash_lib.Std.Hash.state" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.hash_fold_t
+      positional_1
+      positional_2
+    |> python_of_ppx_hash_lib__std__hash__state
+  ;;
+
+  let hash () = (* Core_kernel__Date.Option.t -> Ppx_hash_lib.Std.Hash.hash_value *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.hash
+      positional_1
+    |> python_of_ppx_hash_lib__std__hash__hash_value
+  ;;
+
+  let sexp_of_t () = (* Core_kernel__Date.Option.t -> Ppx_sexp_conv_lib.Sexp.t *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.sexp_of_t
+      positional_1
+    |> python_of_ppx_sexp_conv_lib__sexp__t
+  ;;
+
+  let none () = (* Core_kernel__Date.Option.t *)
+    Defunc.no_arg (fun () -> Core_kernel__Date.Option.none |> python_of_core_kernel__date__option__t)
+  ;;
+
+  let some () = (* Core_kernel__Date.t -> Core_kernel__Date.Option.t *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    in
+    Core_kernel__Date.Option.some
+      positional_1
+    |> python_of_core_kernel__date__option__t
+  ;;
+
+  let some_is_representable () = (* Core_kernel__Date.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    in
+    Core_kernel__Date.Option.some_is_representable
+      positional_1
+    |> python_of_bool
+  ;;
+
+  let is_none () = (* Core_kernel__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.is_none
+      positional_1
+    |> python_of_bool
+  ;;
+
+  let is_some () = (* Core_kernel__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.is_some
+      positional_1
+    |> python_of_bool
+  ;;
+
+  let value () = (* Core_kernel__Date.Option.t -> default:Core_kernel__Date.t -> Core_kernel__Date.t *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      default = keyword "default" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    in
+    Core_kernel__Date.Option.value
+      positional_1
+      ~default
+    |> python_of_core_kernel__date__t
+  ;;
+
+  let value_exn () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.t *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.value_exn
+      positional_1
+    |> python_of_core_kernel__date__t
+  ;;
+
+  let unchecked_value () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.t *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.unchecked_value
+      positional_1
+    |> python_of_core_kernel__date__t
+  ;;
+
+  module Optional_syntax = struct
+    module Optional_syntax = struct
+      let is_none () = (* Core_kernel__Date.Option.t -> bool *)
+        let%map_open
+          positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+        in
+        Core_kernel__Date.Option.Optional_syntax.Optional_syntax.is_none
+          positional_1
+        |> python_of_bool
+      ;;
+
+      let unsafe_value () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.t *)
+        let%map_open
+          positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+        in
+        Core_kernel__Date.Option.Optional_syntax.Optional_syntax.unsafe_value
+          positional_1
+        |> python_of_core_kernel__date__t
+      ;;
+
+
+      let register_module ~module_name =
+        let modl = Py_module.create module_name in
+        Py_module.set modl "is_none" (is_none ());
+        Py_module.set modl "unsafe_value" (unsafe_value ());
+        modl
+    end;;
+
+    let register_module ~module_name =
+      let modl = Py_module.create module_name in
+      let sub_module = Optional_syntax.register_module ~module_name:"core_kernel__date__option__optional_syntax__optional_syntax__optional_syntax" in
+      Py_module.set_value modl "optional_syntax" (Py_module.pyobject sub_module);
+      modl
+  end;;
+
+  let register_module ~module_name =
+    let modl = Py_module.create module_name in
+    Py_module.set modl "compare" (compare ());
+    Py_module.set modl "hash_fold_t" (hash_fold_t ());
+    Py_module.set modl "hash" (hash ());
+    Py_module.set modl "sexp_of_t" (sexp_of_t ());
+    Py_module.set modl "none" (none ());
+    Py_module.set modl "some" (some ());
+    Py_module.set modl "some_is_representable" (some_is_representable ());
+    Py_module.set modl "is_none" (is_none ());
+    Py_module.set modl "is_some" (is_some ());
+    Py_module.set modl "value" (value ());
+    Py_module.set modl "value_exn" (value_exn ());
+    Py_module.set modl "unchecked_value" (unchecked_value ());
+    let sub_module = Optional_syntax.register_module ~module_name:"core_kernel__date__option__optional_syntax__optional_syntax" in
+    Py_module.set_value modl "optional_syntax" (Py_module.pyobject sub_module);
+    modl
+end;;
 let of_time () = (* Core_kernel__.Time_float.t -> zone:Core_kernel__.Time_float.Zone.t -> Core_kernel__Date.t *)
   let%map_open
     positional_1 = positional "positional_1" param_core_kernel____time_float__t ~docstring:"Core_kernel__.Time_float.t" and
@@ -672,6 +835,8 @@ let register_module ~module_name =
   Py_module.set modl "unix_epoch" (unix_epoch ());
   let sub_module = Days.register_module ~module_name:"core_kernel__date__days__days" in
   Py_module.set_value modl "days" (Py_module.pyobject sub_module);
+  let sub_module = Option.register_module ~module_name:"core_kernel__date__option__option" in
+  Py_module.set_value modl "option" (Py_module.pyobject sub_module);
   Py_module.set modl "of_time" (of_time ());
   Py_module.set modl "today" (today ());
   modl
