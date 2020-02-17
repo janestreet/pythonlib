@@ -44,7 +44,7 @@ let wrap_ocaml_errors f =
 
 let set_function t ?docstring name fn =
   let fn args = wrap_ocaml_errors (fun () -> fn args) in
-  Py.Module.set t name (Py.Callable.of_function ?docstring fn)
+  Py.Module.set t name (Py.Callable.of_function ~name ?docstring fn)
 ;;
 
 let set_function_with_keywords t ?docstring name fn =
@@ -56,7 +56,7 @@ let set_function_with_keywords t ?docstring name fn =
     in
     wrap_ocaml_errors (fun () -> fn args keywords)
   in
-  Py.Module.set t name (Py.Callable.of_function_with_keywords ?docstring fn)
+  Py.Module.set t name (Py.Callable.of_function_with_keywords ~name ?docstring fn)
 ;;
 
 let docstring_with_params ?docstring defunc =

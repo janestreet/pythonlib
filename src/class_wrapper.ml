@@ -153,7 +153,7 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
         in
         match (fn : _ Method.fn) with
         | No_keywords fn ->
-          Py.Callable.of_function ?docstring (fun args ->
+          Py.Callable.of_function ~name ?docstring (fun args ->
             let self, args = self_and_args args in
             try fn t ~self:(unwrap_exn t self, self) ~args with
             | Py.Err _ as pyerr -> raise pyerr
@@ -161,7 +161,7 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
               let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
               raise (Py.Err (ValueError, msg)))
         | With_keywords fn ->
-          Py.Callable.of_function_with_keywords ?docstring (fun args keywords ->
+          Py.Callable.of_function_with_keywords ~name ?docstring (fun args keywords ->
             try
               let self, args = self_and_args args in
               let keywords =
@@ -177,9 +177,10 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
       name, fn)
   in
   let init =
+    let name = "__init__" in
     let fn =
       let docstring = Option.bind init ~f:(fun i -> i.Init.docstring) in
-      Py.Callable.of_function_as_tuple ?docstring (fun tuple ->
+      Py.Callable.of_function_as_tuple ~name ?docstring (fun tuple ->
         try
           let self, args =
             match Py.Tuple.to_list tuple with
@@ -199,7 +200,7 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
           let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
           raise (Py.Err (ValueError, msg)))
     in
-    "__init__", fn
+    name, fn
   in
   let cls_object =
     Py.Class.init name ~fields:[ content_field, Py.none ] ~methods:(init :: methods)
