@@ -38,7 +38,13 @@ let wrap_ocaml_errors f =
   try f () with
   | Py.Err _ as pyerr -> raise pyerr
   | exn ->
-    let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
+    let backtrace = Backtrace.Exn.most_recent () in
+    let msg =
+      Printf.sprintf
+        "ocaml error %s\n%s"
+        (Exn.to_string_mach exn)
+        (Backtrace.to_string backtrace)
+    in
     raise (Py.Err (ValueError, msg))
 ;;
 
