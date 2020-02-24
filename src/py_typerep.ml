@@ -283,7 +283,7 @@ and python_to_ocaml : type a. a Typerep.t -> pyobject -> a =
 ;;
 
 let%expect_test "obj" =
-  if not (Py.is_initialized ()) then Py.initialize ();
+  if not (Py.is_initialized ()) then Py.initialize ~version:3 ();
   let print_list elt_to_string l =
     List.map l ~f:elt_to_string |> String.concat ~sep:" " |> Stdio.printf "%s\n%!"
   in
