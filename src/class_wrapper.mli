@@ -59,3 +59,4 @@ val make
   -> 'a t
 
 val register_in_module : 'a t -> Py_module.t -> unit
+val clear_content : 'a t -> pyobject -> unit

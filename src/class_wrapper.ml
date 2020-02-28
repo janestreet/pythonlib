@@ -212,3 +212,5 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
 let register_in_module t modl =
   Py_module.set_value modl t.name (Option.value_exn t.cls_object)
 ;;
+
+let clear_content _t pyobject = Py.Object.set_attr_string pyobject content_field Py.none
