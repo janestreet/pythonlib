@@ -66,3 +66,4 @@ val keywords_of_python
   -> (string, pyobject, String.comparator_witness) Map.t Or_error.t
 
 val docstring_with_params : ?docstring:string -> _ Defunc.t -> string
+val wrap_ocaml_errors : (unit -> 'a) -> 'a
