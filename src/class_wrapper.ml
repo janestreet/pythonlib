@@ -105,9 +105,7 @@ let unwrap t pyobj =
 
 let wrap t obj =
   let cls = Option.value_exn t.cls_object in
-  let pyobject = Py.Object.call_function_obj_args cls [||] in
-  Py.Object.set_attr_string pyobject content_field (wrap_capsule t obj);
-  pyobject
+  Py.Object.call_function_obj_args cls [| wrap_capsule t obj |]
 ;;
 
 let make ?to_string_repr ?to_string ?eq ?init name ~methods =
@@ -188,9 +186,14 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
             | p :: q -> p, q
           in
           let content =
-            match init with
-            | Some init -> init.fn t ~args |> wrap_capsule t
-            | None -> Py.none
+            match args with
+            (* Do not call the __init__ function when given a capsule as input
+               as this is used when wrapping values. *)
+            | [ capsule ] when Py.Capsule.check capsule -> capsule
+            | _ ->
+              (match init with
+               | Some init -> init.fn t ~args |> wrap_capsule t
+               | None -> Py.none)
           in
           Py.Object.set_attr_string self content_field content;
           Py.none
