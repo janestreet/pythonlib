@@ -92,3 +92,7 @@ let set_no_arg t ?docstring name fn =
     then value_errorf "no keyword argument expected (got %d)" (Map.length keywords);
     fn ())
 ;;
+
+module Raw = struct
+  let set = set
+end

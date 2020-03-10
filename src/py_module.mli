@@ -67,3 +67,7 @@ val keywords_of_python
 
 val docstring_with_params : ?docstring:string -> _ Defunc.t -> string
 val wrap_ocaml_errors : (unit -> 'a) -> 'a
+
+module Raw : sig
+  val set : pyobject -> ?docstring:string -> string -> pyobject Defunc.t -> unit
+end
