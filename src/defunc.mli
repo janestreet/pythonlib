@@ -15,7 +15,7 @@ end
 include Applicative.S with type 'a t := 'a t
 include Applicative.Let_syntax with type 'a t := 'a t
 
-val params_docstring : 'a t -> string option
+val params_docstring : ?docstring:string -> 'a t -> string
 val no_arg : (unit -> 'a) -> 'a t
 
 val apply

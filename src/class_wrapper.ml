@@ -50,6 +50,7 @@ module Method = struct
 
   type 'a fn =
     | No_keywords of ('a cls -> self:'a * pyobject -> args:pyobject list -> pyobject)
+    | No_keywords_raw of ('a cls -> self:pyobject -> args:pyobject list -> pyobject)
     | With_keywords of
         ('a cls
          -> self:'a * pyobject
@@ -64,16 +65,19 @@ module Method = struct
     }
 
   let create ?docstring name fn = { name; fn = No_keywords fn; docstring }
+  let create_raw ?docstring name fn = { name; fn = No_keywords_raw fn; docstring }
 
   let create_with_keywords ?docstring name fn =
     { name; fn = With_keywords fn; docstring }
   ;;
 
-  let defunc ?docstring name fn =
+  let defunc ?docstring name defunc =
+    let docstring = Defunc.params_docstring ?docstring defunc in
     let fn cls ~self ~args ~keywords =
-      Defunc.apply (fn cls ~self) (Array.of_list args) keywords
+      let fn = Defunc.apply defunc (Array.of_list args) keywords in
+      fn cls ~self
     in
-    create_with_keywords ?docstring name fn
+    create_with_keywords ~docstring name fn
   ;;
 
   let no_arg ?docstring name fn =
@@ -106,6 +110,14 @@ let unwrap t pyobj =
 let wrap t obj =
   let cls = Option.value_exn t.cls_object in
   Py.Object.call_function_obj_args cls [| wrap_capsule t obj |]
+;;
+
+let protect ~f =
+  try f () with
+  | Py.Err _ as pyerr -> raise pyerr
+  | exn ->
+    let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
+    raise (Py.Err (ValueError, msg))
 ;;
 
 let make ?to_string_repr ?to_string ?eq ?init name ~methods =
@@ -152,25 +164,22 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
         match (fn : _ Method.fn) with
         | No_keywords fn ->
           Py.Callable.of_function ~name ?docstring (fun args ->
-            let self, args = self_and_args args in
-            try fn t ~self:(unwrap_exn t self, self) ~args with
-            | Py.Err _ as pyerr -> raise pyerr
-            | exn ->
-              let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
-              raise (Py.Err (ValueError, msg)))
+            protect ~f:(fun () ->
+              let self, args = self_and_args args in
+              fn t ~self:(unwrap_exn t self, self) ~args))
+        | No_keywords_raw fn ->
+          Py.Callable.of_function ~name ?docstring (fun args ->
+            protect ~f:(fun () ->
+              let self, args = self_and_args args in
+              fn t ~self ~args))
         | With_keywords fn ->
           Py.Callable.of_function_with_keywords ~name ?docstring (fun args keywords ->
-            try
+            protect ~f:(fun () ->
               let self, args = self_and_args args in
               let keywords =
                 Py_module.keywords_of_python keywords |> Or_error.ok_exn
               in
-              fn t ~self:(unwrap_exn t self, self) ~args ~keywords
-            with
-            | Py.Err _ as pyerr -> raise pyerr
-            | exn ->
-              let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
-              raise (Py.Err (ValueError, msg)))
+              fn t ~self:(unwrap_exn t self, self) ~args ~keywords))
       in
       name, fn)
   in
@@ -217,3 +226,8 @@ let register_in_module t modl =
 ;;
 
 let clear_content _t pyobject = Py.Object.set_attr_string pyobject content_field Py.none
+let cls_object t = Option.value_exn t.cls_object
+
+let set_content t pyobject v =
+  Py.Object.set_attr_string pyobject content_field (wrap_capsule t v)
+;;

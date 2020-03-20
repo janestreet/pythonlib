@@ -65,20 +65,13 @@ let set_function_with_keywords t ?docstring name fn =
   Py.Module.set t name (Py.Callable.of_function_with_keywords ~name ?docstring fn)
 ;;
 
-let docstring_with_params ?docstring defunc =
-  [ Defunc.params_docstring defunc; docstring ]
-  |> List.filter_opt
-  |> String.concat ~sep:"\n\n"
-  |> Printf.sprintf "\n%s"
-;;
-
 let set t ?docstring name defunc =
-  let docstring = docstring_with_params ?docstring defunc in
+  let docstring = Defunc.params_docstring ?docstring defunc in
   set_function_with_keywords t ~docstring name (Defunc.apply defunc)
 ;;
 
 let set_unit t ?docstring name defunc =
-  let docstring = docstring_with_params ?docstring defunc in
+  let docstring = Defunc.params_docstring ?docstring defunc in
   set_function_with_keywords t ~docstring name (fun args kwargs ->
     Defunc.apply defunc args kwargs;
     Py.none)

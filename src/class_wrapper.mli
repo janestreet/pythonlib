@@ -26,6 +26,13 @@ module Method : sig
     -> ('a cls -> self:'a * pyobject -> args:pyobject list -> pyobject)
     -> 'a t
 
+  val create_raw
+    :  ?docstring:string
+    -> string
+    (** In the raw callbacks, [self] contains only the Python wrapper object. *)
+    -> ('a cls -> self:pyobject -> args:pyobject list -> pyobject)
+    -> 'a t
+
   val create_with_keywords
     :  ?docstring:string
     -> string
@@ -39,7 +46,7 @@ module Method : sig
   val defunc
     :  ?docstring:string
     -> string
-    -> ('a cls -> self:'a * pyobject -> pyobject Defunc.t)
+    -> ('a cls -> self:'a * pyobject -> pyobject) Defunc.t
     -> 'a t
 
   val no_arg
@@ -60,3 +67,5 @@ val make
 
 val register_in_module : 'a t -> Py_module.t -> unit
 val clear_content : 'a t -> pyobject -> unit
+val set_content : 'a t -> pyobject -> 'a -> unit
+val cls_object : 'a t -> pyobject

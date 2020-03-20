@@ -109,7 +109,7 @@ let apply (type a) (t : a t) args kwargs =
       | Arg { name; kind = `positional; _ } -> [ name ]
       | Arg { kind = `keyword _; _ } -> []
       | Opt_arg _ -> []
-      | Star_args _ -> [ "*args" ]
+      | Star_args _ -> [ "other args" ]
       | Star_kwargs _ -> []
     in
     loop t
@@ -216,8 +216,8 @@ let params_docstring t =
     ]
     |> String.concat ~sep:"\n"
   in
-  let star_args_docstring doc = sprintf "    :param *args: %s" doc in
-  let star_kwargs_docstring doc = sprintf "    :param **kwargs: %s" doc in
+  let star_args_docstring doc = sprintf "    :param other args: %s" doc in
+  let star_kwargs_docstring doc = sprintf "    :param other keyword args: %s" doc in
   let rec loop : type a. a t -> pos:int -> string list * int =
     fun t ~pos ->
       match t with
@@ -237,6 +237,13 @@ let params_docstring t =
   in
   let params, _pos = loop t ~pos:0 in
   if List.is_empty params then None else String.concat params ~sep:"\n\n" |> Option.some
+;;
+
+let params_docstring ?docstring t =
+  [ params_docstring t; docstring ]
+  |> List.filter_opt
+  |> String.concat ~sep:"\n\n"
+  |> Printf.sprintf "\n%s"
 ;;
 
 module Param = struct
