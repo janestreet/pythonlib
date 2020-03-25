@@ -227,6 +227,7 @@ let register_in_module t modl =
 
 let clear_content _t pyobject = Py.Object.set_attr_string pyobject content_field Py.none
 let cls_object t = Option.value_exn t.cls_object
+let is_instance t pyobject = Py.Object.is_instance pyobject (cls_object t)
 
 let set_content t pyobject v =
   Py.Object.set_attr_string pyobject content_field (wrap_capsule t v)
