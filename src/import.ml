@@ -108,19 +108,39 @@ module One_or_tuple_or_list = struct
 end
 
 module Or_error_python = struct
-  type err = { caml_error : string } [@@deriving python]
   type 'a t = 'a Or_error.t
 
+  let value_error_obj str =
+    let value_error = Py.Module.get (Py.Module.builtins ()) "ValueError" in
+    Py.Object.call_function_obj_args value_error [| python_of_string str |]
+  ;;
+
+  let of_error pyobject =
+    let pyexception = Py.Module.get (Py.Module.builtins ()) "Exception" in
+    if Py.Object.is_instance pyobject pyexception
+    then
+      Option.value_exn
+        ~message:"no args field on python exception"
+        (Py.Object.get_attr_string pyobject "args")
+      |> list_of_python Py.Object.to_string
+      |> String.concat ~sep:", "
+      |> Option.some
+    else None
+  ;;
+
   let t_of_python ok_of_python p =
-    match ok_of_python p with
-    | v -> Ok v
-    | exception exn -> Or_error.of_exn exn
+    match of_error p with
+    | Some error -> Or_error.error_string error
+    | None ->
+      (match ok_of_python p with
+       | v -> Ok v
+       | exception exn -> Or_error.of_exn exn)
   ;;
 
   let python_of_t python_of_a t =
     match t with
     | Ok a -> python_of_a a
-    | Error err -> python_of_err { caml_error = Error.to_string_hum err }
+    | Error err -> Error.to_string_hum err |> value_error_obj
   ;;
 end
 
