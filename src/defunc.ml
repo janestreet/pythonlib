@@ -360,6 +360,15 @@ module Param = struct
         o1.conv p1, o2.conv p2, o3.conv p3, o4.conv p4, o5.conv p5)
   ;;
 
+  let option (o : _ Of_python.t) =
+    Of_python.create
+      ~type_name:(Printf.sprintf "(%s option)" o.type_name)
+      ~conv:(fun python_value ->
+        if Py.is_null python_value || Py.is_none python_value
+        then None
+        else Some (o.conv python_value))
+  ;;
+
   let list (o : _ Of_python.t) =
     Of_python.create
       ~type_name:(Printf.sprintf "[%s]" o.type_name)
