@@ -596,17 +596,6 @@ module Days = struct
     modl
 end;;
 module Option = struct
-  let compare () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> int *)
-    let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
-    in
-    Core_kernel__Date.Option.compare
-      positional_1
-      positional_2
-    |> python_of_int
-  ;;
-
   let hash_fold_t () = (* Ppx_hash_lib.Std.Hash.state -> Core_kernel__Date.Option.t -> Ppx_hash_lib.Std.Hash.state *)
     let%map_open
       positional_1 = positional "positional_1" param_ppx_hash_lib__std__hash__state ~docstring:"Ppx_hash_lib.Std.Hash.state" and
@@ -739,10 +728,167 @@ module Option = struct
       Py_module.set_value modl "optional_syntax" (Py_module.pyobject sub_module);
       modl
   end;;
+  let greatereq () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.(>=)
+      positional_1
+      positional_2
+    |> python_of_bool
+  ;;
+
+  let lowereq () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.(<=)
+      positional_1
+      positional_2
+    |> python_of_bool
+  ;;
+
+  let eq () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.(=)
+      positional_1
+      positional_2
+    |> python_of_bool
+  ;;
+
+  let greater () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.(>)
+      positional_1
+      positional_2
+    |> python_of_bool
+  ;;
+
+  let lower () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.(<)
+      positional_1
+      positional_2
+    |> python_of_bool
+  ;;
+
+  let neq () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.(<>)
+      positional_1
+      positional_2
+    |> python_of_bool
+  ;;
+
+  let equal () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.equal
+      positional_1
+      positional_2
+    |> python_of_bool
+  ;;
+
+  let compare () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> int *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.compare
+      positional_1
+      positional_2
+    |> python_of_int
+  ;;
+
+  let min () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.min
+      positional_1
+      positional_2
+    |> python_of_core_kernel__date__option__t
+  ;;
+
+  let max () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.max
+      positional_1
+      positional_2
+    |> python_of_core_kernel__date__option__t
+  ;;
+
+  let ascending () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> int *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.ascending
+      positional_1
+      positional_2
+    |> python_of_int
+  ;;
+
+  let descending () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> int *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.descending
+      positional_1
+      positional_2
+    |> python_of_int
+  ;;
+
+  let between () = (* Core_kernel__Date.Option.t -> low:Core_kernel__Date.Option.t -> high:Core_kernel__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      low = keyword "low" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      high = keyword "high" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.between
+      positional_1
+      ~low
+      ~high
+    |> python_of_bool
+  ;;
+
+  let clamp_exn () = (* Core_kernel__Date.Option.t -> min:Core_kernel__Date.Option.t -> max:Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      min = keyword "min" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
+      max = keyword "max" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+    in
+    Core_kernel__Date.Option.clamp_exn
+      positional_1
+      ~min
+      ~max
+    |> python_of_core_kernel__date__option__t
+  ;;
+
 
   let register_module ~module_name =
     let modl = Py_module.create module_name in
-    Py_module.set modl "compare" (compare ());
     Py_module.set modl "hash_fold_t" (hash_fold_t ());
     Py_module.set modl "hash" (hash ());
     Py_module.set modl "sexp_of_t" (sexp_of_t ());
@@ -756,6 +902,20 @@ module Option = struct
     Py_module.set modl "unchecked_value" (unchecked_value ());
     let sub_module = Optional_syntax.register_module ~module_name:"core_kernel__date__option__optional_syntax__optional_syntax" in
     Py_module.set_value modl "optional_syntax" (Py_module.pyobject sub_module);
+    Py_module.set modl "greatereq" (greatereq ());
+    Py_module.set modl "lowereq" (lowereq ());
+    Py_module.set modl "eq" (eq ());
+    Py_module.set modl "greater" (greater ());
+    Py_module.set modl "lower" (lower ());
+    Py_module.set modl "neq" (neq ());
+    Py_module.set modl "equal" (equal ());
+    Py_module.set modl "compare" (compare ());
+    Py_module.set modl "min" (min ());
+    Py_module.set modl "max" (max ());
+    Py_module.set modl "ascending" (ascending ());
+    Py_module.set modl "descending" (descending ());
+    Py_module.set modl "between" (between ());
+    Py_module.set modl "clamp_exn" (clamp_exn ());
     modl
 end;;
 let of_time () = (* Core_kernel__.Time_float.t -> zone:Core_kernel__.Time_float.Zone.t -> Core_kernel__Date.t *)
