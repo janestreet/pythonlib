@@ -165,3 +165,25 @@ module One_or_tuple_or_list_or_error = struct
        | None -> failwith "incorrect python type")
   ;;
 end
+
+let python_printf fmt =
+  Printf.ksprintf
+    (fun str ->
+       let print = Py.Module.get (Py.Module.builtins ()) "print" in
+       Py.Object.call_function_obj_args print [| Py.String.of_string str |]
+       |> (ignore : pyobject -> unit))
+    fmt
+;;
+
+let python_eprintf fmt =
+  Printf.ksprintf
+    (fun str ->
+       let print = Py.Module.get (Py.Module.builtins ()) "print" in
+       let stderr = Py.Module.get (Py.import "sys") "stderr" in
+       Py.Callable.to_function_with_keywords
+         print
+         [| Py.String.of_string str |]
+         [ "file", stderr ]
+       |> (ignore : pyobject -> unit))
+    fmt
+;;
