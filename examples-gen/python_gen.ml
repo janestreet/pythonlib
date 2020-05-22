@@ -27,7 +27,7 @@ let rec print_signature : string -> Types.signature_item -> env:Module_env.t -> 
        Stdio.printf "%ssig\n%!" indent;
        List.iter signature ~f:(print_signature (indent ^ "  ") ~env);
        Stdio.printf "%ssigend\n%!" indent
-     | Mty_functor (_, _, _) -> Stdio.printf "      functor\n%!"
+     | Mty_functor (_, _) -> Stdio.printf "      functor\n%!"
      | Mty_alias _ -> Stdio.printf "%s  alias\n%!" indent)
   | Sig_modtype (ident, _, _) ->
     Stdio.printf "%smodtype %s\n%!" indent (Ident.name ident)
