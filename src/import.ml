@@ -8,6 +8,24 @@ type pyobject = Pytypes.pyobject
 let python_of_pyobject = Fn.id
 let pyobject_of_python = Fn.id
 
+module Of_pythonable (Pythonable : sig
+    type t [@@deriving python]
+  end)
+    (Conv : sig
+       type pythonable
+       type t
+
+       val to_pythonable : t -> pythonable
+       val of_pythonable : pythonable -> t
+     end
+     with type pythonable := Pythonable.t) : sig
+  type t [@@deriving python]
+end
+with type t := Conv.t = struct
+  let python_of_t t = Conv.to_pythonable t |> Pythonable.python_of_t
+  let t_of_python pyobject = Pythonable.t_of_python pyobject |> Conv.of_pythonable
+end
+
 module Convert_as_string (M : Stringable.S) = struct
   let python_of_t t = M.to_string t |> python_of_string
   let t_of_python p = string_of_python p |> M.of_string
