@@ -3,10 +3,10 @@ open Base
 
 type t
 
-(** [create module_name] creates a new python module with the specified name.
+(** [create ?docstring module_name] creates a new python module with the specified name.
     This module can directly be imported from python.
 *)
-val create : string -> t
+val create : ?docstring:string -> string -> t
 
 (** [create_with_eval ~name ~py_source] creates a new module defined by evaluating
     [py_source] which contains some python code.

@@ -3,7 +3,11 @@ open Import
 
 type t = pyobject
 
-let create = Py.Import.add_module
+let create ?docstring module_name =
+  let modl = Py.Import.add_module module_name in
+  Option.iter docstring ~f:(Py.Module.set_docstring modl);
+  modl
+;;
 
 let create_with_eval ~name ~py_source =
   let modl = Py.Import.add_module name in
