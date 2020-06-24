@@ -24,6 +24,7 @@ let create_with_eval ~name ~py_source =
   modl
 ;;
 
+let import = Py.import
 let set_value = Py.Module.set
 let pyobject t = t
 

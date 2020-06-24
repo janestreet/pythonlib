@@ -13,6 +13,9 @@ val create : ?docstring:string -> string -> t
 *)
 val create_with_eval : name:string -> py_source:string -> t
 
+(** [import module_name] imports an already existing module. *)
+val import : string -> t
+
 (** [set_value t name obj] sets the field [name] on module [t] to hold value
     [obj]. This can be accessed via [t.name] in python.
 *)
