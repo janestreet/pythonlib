@@ -240,6 +240,17 @@ let params_docstring t =
 ;;
 
 let params_docstring ?docstring t =
+  (* In order to ensure better formatting when using sphinx to generate some html
+     documentation, we ensure that single line docstrings start with four spaces.
+  *)
+  let docstring =
+    Option.map docstring ~f:(fun docstring ->
+      if String.contains docstring '\n'
+      || String.is_prefix docstring ~prefix:" "
+      || String.is_empty docstring
+      then docstring
+      else "    " ^ docstring)
+  in
   [ params_docstring t; docstring ]
   |> List.filter_opt
   |> String.concat ~sep:"\n\n"
