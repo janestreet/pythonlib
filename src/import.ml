@@ -36,6 +36,21 @@ let get_class p =
     Option.map (Py.Object.get_attr_string cls "__name__") ~f:Py.String.to_string)
 ;;
 
+let value_errorf fmt = Printf.ksprintf (fun msg -> raise (Py.Err (ValueError, msg))) fmt
+
+let get_from_builtins =
+  let cache = Hashtbl.create (module String) in
+  fun str ->
+    Hashtbl.find_or_add cache str ~default:(fun () ->
+      match Py.Module.get (Py.Eval.get_builtins ()) str with
+      | pyobject -> pyobject
+      (* In some very specific conditions, the builtins module may contain some objects that
+         are not in __main__.__builtins__, e.g. when using the %run macro in an
+         ipython kernel.
+      *)
+      | exception _ -> Py.Module.get (Py.import "builtins") str)
+;;
+
 module One_or_tuple = struct
   (* 'a should not be encoded as a python tuple or none! *)
   type 'a t = 'a list
@@ -129,12 +144,12 @@ module Or_error_python = struct
   type 'a t = 'a Or_error.t
 
   let value_error_obj str =
-    let value_error = Py.Module.get (Py.Module.builtins ()) "ValueError" in
+    let value_error = get_from_builtins "ValueError" in
     Py.Object.call_function_obj_args value_error [| python_of_string str |]
   ;;
 
   let of_error pyobject =
-    let pyexception = Py.Module.get (Py.Module.builtins ()) "Exception" in
+    let pyexception = get_from_builtins "Exception" in
     if Py.Object.is_instance pyobject pyexception
     then
       Option.value_exn
@@ -162,8 +177,6 @@ module Or_error_python = struct
   ;;
 end
 
-let value_errorf fmt = Printf.ksprintf (fun msg -> raise (Py.Err (ValueError, msg))) fmt
-
 module One_or_tuple_or_list_or_error = struct
   type 'a t = 'a Or_error_python.t list
 
@@ -187,7 +200,7 @@ end
 let python_printf fmt =
   Printf.ksprintf
     (fun str ->
-       let print = Py.Module.get (Py.Module.builtins ()) "print" in
+       let print = get_from_builtins "print" in
        Py.Object.call_function_obj_args print [| Py.String.of_string str |]
        |> (ignore : pyobject -> unit))
     fmt
@@ -196,7 +209,7 @@ let python_printf fmt =
 let python_eprintf fmt =
   Printf.ksprintf
     (fun str ->
-       let print = Py.Module.get (Py.Module.builtins ()) "print" in
+       let print = get_from_builtins "print" in
        let stderr = Py.Module.get (Py.import "sys") "stderr" in
        Py.Callable.to_function_with_keywords
          print
