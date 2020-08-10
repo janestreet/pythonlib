@@ -103,8 +103,7 @@ let python_of_type st ~all_types =
     Printf.sprintf
       "(fun (%s) -> Py.Tuple.of_list [%s])"
       (List.map names ~f:fst |> String.concat ~sep:", ")
-      (List.map names ~f:(fun (name, t) -> walk t ^ " " ^ name)
-       |> String.concat ~sep:"; ")
+      (List.map names ~f:(fun (name, t) -> walk t ^ " " ^ name) |> String.concat ~sep:"; ")
   in
   walk st
 ;;
@@ -140,9 +139,7 @@ let write_function
       ~result
   =
   let pr s = pr outc ~indent s in
-  let path_str =
-    Module_env.path env |> Module_env.Path.names |> String.concat ~sep:"."
-  in
+  let path_str = Module_env.path env |> Module_env.Path.names |> String.concat ~sep:"." in
   pr "let %s () = (* %s *)" python_name (Type.to_string type_);
   pr "  let%%map_open";
   let args =
@@ -241,9 +238,7 @@ let write_function
 
 let write_value ident value_description outc ~indent ~env ~all_types =
   let pr s = pr outc ~indent s in
-  let path_str =
-    Module_env.path env |> Module_env.Path.names |> String.concat ~sep:"."
-  in
+  let path_str = Module_env.path env |> Module_env.Path.names |> String.concat ~sep:"." in
   match Type.of_type_desc value_description.Types.val_type.desc ~env with
   | Error _err -> None
   | Ok type_ ->

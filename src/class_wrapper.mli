@@ -28,8 +28,7 @@ module Method : sig
 
   val create_raw
     :  ?docstring:string
-    -> string
-    (** In the raw callbacks, [self] contains only the Python wrapper object. *)
+    -> string (** In the raw callbacks, [self] contains only the Python wrapper object. *)
     -> ('a cls -> self:pyobject -> args:pyobject list -> pyobject)
     -> 'a t
 

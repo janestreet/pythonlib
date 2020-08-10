@@ -32,7 +32,6 @@ let register_module ~module_name =
            in a different thread would result in a segfault if we do
            not hold the GIL.
         *)
-        Py.Gil.with_lock (fun () ->
-          ignore (Py.Callable.to_function fn [||] : pyobject)))]
+        Py.Gil.with_lock (fun () -> ignore (Py.Callable.to_function fn [||] : pyobject)))]
     ~docstring:"Executes a python closure regularly."
 ;;

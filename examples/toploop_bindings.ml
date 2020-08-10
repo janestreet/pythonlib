@@ -63,8 +63,7 @@ let exn_to_string exn ~code =
       if min_line_number <= lnum && lnum <= max_line_number
       then (
         let marker =
-          if location.loc_start.pos_lnum <= lnum
-          && lnum <= location.loc_end.pos_lnum
+          if location.loc_start.pos_lnum <= lnum && lnum <= location.loc_end.pos_lnum
           then ">"
           else " "
         in

@@ -297,10 +297,7 @@ module Param = struct
   let check_tuple_len pyobject ~expected_length =
     if not (Py.Tuple.check pyobject)
     then
-      Printf.failwithf
-        "expected a tuple got %s"
-        (Py.Type.get pyobject |> Py.Type.name)
-        ();
+      Printf.failwithf "expected a tuple got %s" (Py.Type.get pyobject |> Py.Type.name) ();
     let length = Py.Tuple.size pyobject in
     if expected_length <> length
     then
@@ -395,10 +392,7 @@ module Param = struct
     Of_python.create ~type_name:(Printf.sprintf "[%s]" o.type_name) ~conv:(fun p ->
       match to_iterable p with
       | None ->
-        Printf.failwithf
-          "not a list/tuple/iter (%s)"
-          (Py.Type.get p |> Py.Type.name)
-          ()
+        Printf.failwithf "not a list/tuple/iter (%s)" (Py.Type.get p |> Py.Type.name) ()
       | Some l -> Py.List.to_list_map o.conv l)
   ;;
 

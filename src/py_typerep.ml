@@ -369,9 +369,7 @@ let rec of_type : Type.t -> Typerep.packed = function
   | Apply (_t, str) -> Printf.failwithf "unknown type %s" str ()
 ;;
 
-let parse str =
-  Type_parser.type_expr Type_lexer.token (Lexing.from_string str) |> of_type
-;;
+let parse str = Type_parser.type_expr Type_lexer.token (Lexing.from_string str) |> of_type
 
 let%expect_test "parse-type" =
   if not (Py.is_initialized ()) then Py.initialize ();

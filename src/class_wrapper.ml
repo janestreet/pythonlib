@@ -66,10 +66,7 @@ module Method = struct
 
   let create ?docstring name fn = { name; fn = No_keywords fn; docstring }
   let create_raw ?docstring name fn = { name; fn = No_keywords_raw fn; docstring }
-
-  let create_with_keywords ?docstring name fn =
-    { name; fn = With_keywords fn; docstring }
-  ;;
+  let create_with_keywords ?docstring name fn = { name; fn = With_keywords fn; docstring }
 
   let defunc ?docstring name defunc =
     let docstring = Defunc.params_docstring ?docstring defunc in
@@ -141,8 +138,7 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
         let rhs =
           match args with
           | [] -> failwith "eq with no argument"
-          | _ :: _ :: _ ->
-            Printf.failwithf "eq with %d arguments" (List.length args) ()
+          | _ :: _ :: _ -> Printf.failwithf "eq with %d arguments" (List.length args) ()
           | [ rhs ] -> rhs
         in
         fn t (fst self) (unwrap_exn t rhs) |> Py.Bool.of_bool)
