@@ -218,7 +218,7 @@ let params_docstring t =
   in
   let star_args_docstring doc = sprintf "    :param other args: %s" doc in
   let star_kwargs_docstring doc = sprintf "    :param other keyword args: %s" doc in
-  let rec loop : type a. a t -> pos:int -> string list * int =
+  let rec loop : type a. a t -> pos:int -> _ list * int =
     fun t ~pos ->
       match t with
       | Return _ -> [], pos
@@ -227,15 +227,32 @@ let params_docstring t =
         let params1, pos = loop t1 ~pos in
         let params2, pos = loop t2 ~pos in
         params1 @ params2, pos
-      | Arg ({ kind = `positional; _ } as arg) -> [ arg_docstring arg ~pos ], pos + 1
-      | Arg ({ kind = `keyword _; _ } as arg) -> [ arg_docstring arg ~pos ], pos
-      | Opt_arg opt_arg -> [ opt_arg_docstring opt_arg ], pos
+      | Arg ({ kind = `positional; _ } as arg) -> [ `pos (arg_docstring arg ~pos) ], pos + 1
+      | Arg ({ kind = `keyword None; _ } as arg) ->
+        [ `kw_mandatory (arg_docstring arg ~pos) ], pos
+      | Arg ({ kind = `keyword (Some _); _ } as arg) ->
+        [ `kw_opt (arg_docstring arg ~pos) ], pos
+      | Opt_arg opt_arg -> [ `kw_opt (opt_arg_docstring opt_arg) ], pos
       | Star_args doc ->
         (* There should be no other positional arg past this one *)
-        [ star_args_docstring doc ], Int.max_value_30_bits
-      | Star_kwargs doc -> [ star_kwargs_docstring doc ], pos
+        [ `other (star_args_docstring doc) ], Int.max_value_30_bits
+      | Star_kwargs doc -> [ `other (star_kwargs_docstring doc) ], pos
   in
   let params, _pos = loop t ~pos:0 in
+  let params =
+    List.stable_sort params ~compare:(fun param1 param2 ->
+      (* Positional parameters are first, then mandatory keywords, then optional keywords. *)
+      match param1, param2 with
+      | `pos _, `kw_mandatory _ -> -1
+      | `kw_mandatory _, `pos _ -> 1
+      | `pos _, `kw_opt _ -> -1
+      | `kw_opt _, `pos _ -> 1
+      | `kw_mandatory _, `kw_opt _ -> -1
+      | `kw_opt _, `kw_mandatory _ -> 1
+      | _ -> 0)
+    |> List.map ~f:(function `pos str | `kw_mandatory str | `kw_opt str | `other str ->
+      str)
+  in
   if List.is_empty params then None else String.concat params ~sep:"\n\n" |> Option.some
 ;;
 
