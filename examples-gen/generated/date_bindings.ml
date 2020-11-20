@@ -34,6 +34,10 @@ let sexp_of_t () = (* Core_kernel__Date.t -> Sexplib0__.Sexp.t *)
   |> python_of_sexplib0____sexp__t
 ;;
 
+let t_sexp_grammar () = (* Ppx_sexp_conv_lib.Sexp.Private.Raw_grammar.t *)
+  Defunc.no_arg (fun () -> Core_kernel__Date.t_sexp_grammar |> python_of_ppx_sexp_conv_lib__sexp__private__raw_grammar__t)
+;;
+
 let hash_fold_t () = (* Ppx_hash_lib.Std.Hash.state -> Core_kernel__Date.t -> Ppx_hash_lib.Std.Hash.state *)
   let%map_open
     positional_1 = positional "positional_1" param_ppx_hash_lib__std__hash__state ~docstring:"Ppx_hash_lib.Std.Hash.state" and
@@ -596,6 +600,10 @@ module Days = struct
     modl
 end;;
 module Option = struct
+  let t_sexp_grammar () = (* Ppx_sexp_conv_lib.Sexp.Private.Raw_grammar.t *)
+    Defunc.no_arg (fun () -> Core_kernel__Date.Option.t_sexp_grammar |> python_of_ppx_sexp_conv_lib__sexp__private__raw_grammar__t)
+  ;;
+
   let hash_fold_t () = (* Ppx_hash_lib.Std.Hash.state -> Core_kernel__Date.Option.t -> Ppx_hash_lib.Std.Hash.state *)
     let%map_open
       positional_1 = positional "positional_1" param_ppx_hash_lib__std__hash__state ~docstring:"Ppx_hash_lib.Std.Hash.state" and
@@ -889,6 +897,7 @@ module Option = struct
 
   let register_module ~module_name =
     let modl = Py_module.create module_name in
+    Py_module.set modl "t_sexp_grammar" (t_sexp_grammar ());
     Py_module.set modl "hash_fold_t" (hash_fold_t ());
     Py_module.set modl "hash" (hash ());
     Py_module.set modl "sexp_of_t" (sexp_of_t ());
@@ -944,6 +953,7 @@ let register_module ~module_name =
   Py_module.set modl "bin_shape_t" (bin_shape_t ());
   Py_module.set modl "t_of_sexp" (t_of_sexp ());
   Py_module.set modl "sexp_of_t" (sexp_of_t ());
+  Py_module.set modl "t_sexp_grammar" (t_sexp_grammar ());
   Py_module.set modl "hash_fold_t" (hash_fold_t ());
   Py_module.set modl "hash" (hash ());
   Py_module.set modl "of_string" (of_string ());
