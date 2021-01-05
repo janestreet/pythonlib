@@ -18,8 +18,16 @@ include Applicative.Let_syntax with type 'a t := 'a t
 val params_docstring : ?docstring:string -> 'a t -> string
 val no_arg : (unit -> 'a) -> 'a t
 
-val apply
+(* Be cautious when using [apply_] that it does not ensure that all the parameters
+   have been used *before* evaluating the wrapped function. *)
+val apply_
   :  'a t
+  -> pyobject array
+  -> (string, pyobject, String.comparator_witness) Map.t
+  -> 'a
+
+val apply
+  :  (unit -> 'a) t
   -> pyobject array
   -> (string, pyobject, String.comparator_witness) Map.t
   -> 'a

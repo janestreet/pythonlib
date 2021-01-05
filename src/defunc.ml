@@ -87,7 +87,7 @@ module State = struct
   let init = { pos = 0; after_star_args = false; after_star_kwargs = false }
 end
 
-let apply (type a) (t : a t) args kwargs =
+let apply_ (type a) (t : a t) args kwargs =
   let try_of_python v ~of_python ~name =
     try of_python.Of_python.conv v with
     | e ->
@@ -188,6 +188,11 @@ let apply (type a) (t : a t) args kwargs =
       (positional_arguments () |> String.concat ~sep:", ")
       (Array.length args);
   v
+;;
+
+let apply (type a) (t : (unit -> a) t) args kwargs =
+  let f = apply_ t args kwargs in
+  f ()
 ;;
 
 let params_docstring t =

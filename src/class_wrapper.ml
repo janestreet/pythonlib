@@ -71,7 +71,7 @@ module Method = struct
   let defunc ?docstring name defunc =
     let docstring = Defunc.params_docstring ?docstring defunc in
     let fn cls ~self ~args ~keywords =
-      let fn = Defunc.apply defunc (Array.of_list args) keywords in
+      let fn = Defunc.apply_ defunc (Array.of_list args) keywords in
       fn cls ~self
     in
     create_with_keywords ~docstring name fn

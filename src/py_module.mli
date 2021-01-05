@@ -49,11 +49,11 @@ val set_function_with_keywords
 (** [set t ?docstring name fn] sets a function on module [t] named [name]. This
     function is defined by defunc [fn].
 *)
-val set : t -> ?docstring:string -> string -> pyobject Defunc.t -> unit
+val set : t -> ?docstring:string -> string -> (unit -> pyobject) Defunc.t -> unit
 
 (** [set_unit] is a specialized version of [set] for function that return [unit].
 *)
-val set_unit : t -> ?docstring:string -> string -> unit Defunc.t -> unit
+val set_unit : t -> ?docstring:string -> string -> (unit -> unit) Defunc.t -> unit
 
 (** [set_no_arg t ?docstring name fn] sets a function on module [t] named [name]. This
     function does not take any positional or keyword argument.
@@ -71,5 +71,5 @@ val keywords_of_python
 val wrap_ocaml_errors : (unit -> 'a) -> 'a
 
 module Raw : sig
-  val set : pyobject -> ?docstring:string -> string -> pyobject Defunc.t -> unit
+  val set : pyobject -> ?docstring:string -> string -> (unit -> pyobject) Defunc.t -> unit
 end

@@ -3,7 +3,10 @@ open Stdio
 
 module To_be_registered = struct
   type t =
-    | Function of string
+    | Function of
+        { python_name : string
+        ; no_arg : bool
+        }
     | Type of
         { type_name : string
         ; path : Module_env.Path.t
@@ -216,6 +219,7 @@ let write_function
         (Type.to_string t)
         suffix);
   pr "  in";
+  pr "  fun () ->";
   pr "  %s.%s" path_str ocaml_name;
   List.iter args ~f:(fun (name, arg, _t, special_kind) ->
     let prefix =
@@ -233,7 +237,7 @@ let write_function
   pr "  |> %s" (python_of_type result ~all_types);
   pr ";;";
   pr "";
-  Some (To_be_registered.Function python_name)
+  Some (To_be_registered.Function { python_name; no_arg = false })
 ;;
 
 let write_value ident value_description outc ~indent ~env ~all_types =
@@ -251,14 +255,10 @@ let write_value ident value_description outc ~indent ~env ~all_types =
     (match uncurrify type_ with
      | Ok ([ (Nolabel, Atom (_, "unit")) ], result) ->
        pr "let %s () = (* %s *)" python_name (Type.to_string type_);
-       pr
-         "  Defunc.no_arg (fun () -> %s.%s () |> %s)"
-         path_str
-         ocaml_name
-         (python_of_type result ~all_types);
+       pr "  %s.%s () |> %s" path_str ocaml_name (python_of_type result ~all_types);
        pr ";;";
        pr "";
-       Some (To_be_registered.Function python_name)
+       Some (To_be_registered.Function { python_name; no_arg = true })
      | Ok ((_ :: _ as args), result) ->
        write_function
          ~indent
@@ -272,14 +272,10 @@ let write_value ident value_description outc ~indent ~env ~all_types =
          ~result
      | Ok ([], _) ->
        pr "let %s () = (* %s *)" python_name (Type.to_string type_);
-       pr
-         "  Defunc.no_arg (fun () -> %s.%s |> %s)"
-         path_str
-         ocaml_name
-         (python_of_type type_ ~all_types);
+       pr "  %s.%s |> %s" path_str ocaml_name (python_of_type type_ ~all_types);
        pr ";;";
        pr "";
-       Some (Function python_name)
+       Some (Function { python_name; no_arg = true })
      | Error _ -> None)
 ;;
 
@@ -289,8 +285,10 @@ let register_module ts outc ~indent =
   pr "  let modl = Py_module.create module_name in";
   List.iter ts ~f:(function
     | To_be_registered.Type _ -> ()
-    | Function func_name ->
-      pr "  Py_module.set modl \"%s\" (%s ());" func_name func_name
+    | Function { python_name; no_arg = false } ->
+      pr "  Py_module.set modl \"%s\" (%s ());" python_name python_name
+    | Function { python_name; no_arg = true } ->
+      pr "  Py_module.set_no_arg modl \"%s\" %s;" python_name python_name
     | Module { ml_module_name; path } ->
       let python_module_name =
         Module_env.Path.append path ml_module_name
