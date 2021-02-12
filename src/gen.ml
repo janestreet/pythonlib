@@ -124,8 +124,9 @@ let pr outc ~indent =
 
 let uncurrify type_ =
   let args, result = Type.uncurrify type_ in
-  if Type.contains_arrow result
-  || List.exists args ~f:(fun (_, arg) -> Type.contains_arrow arg)
+  if
+    Type.contains_arrow result
+    || List.exists args ~f:(fun (_, arg) -> Type.contains_arrow arg)
   then Or_error.error_string "arrow in argument or result"
   else Ok (args, result)
 ;;
