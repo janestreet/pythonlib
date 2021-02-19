@@ -13,15 +13,6 @@ let param_ppx_hash_lib__std__hash__state =
   Defunc.Of_python.create ~type_name:"Ppx_hash_lib.Std.Hash.state" ~conv:ppx_hash_lib__std__hash__state_of_python
 ;;
 
-let python_of_ppx_sexp_conv_lib__sexp__private__raw_grammar__t, ppx_sexp_conv_lib__sexp__private__raw_grammar__t_of_python =
-  let capsule = lazy (Py.Capsule.make "Ppx_sexp_conv_lib.Sexp.Private.Raw_grammar.t") in
-  (fun (x : Ppx_sexp_conv_lib.Sexp.Private.Raw_grammar.t) -> (Lazy.force capsule |> fst) x),
-  (fun x -> (Lazy.force capsule |> snd) x)
-;;
-let param_ppx_sexp_conv_lib__sexp__private__raw_grammar__t =
-  Defunc.Of_python.create ~type_name:"Ppx_sexp_conv_lib.Sexp.Private.Raw_grammar.t" ~conv:ppx_sexp_conv_lib__sexp__private__raw_grammar__t_of_python
-;;
-
 let python_of_core_kernel__date__days__t, core_kernel__date__days__t_of_python =
   let capsule = lazy (Py.Capsule.make "Core_kernel__Date.Days.t") in
   (fun (x : Core_kernel__Date.Days.t) -> (Lazy.force capsule |> fst) x),
