@@ -8,6 +8,9 @@ type t
 *)
 val create : ?docstring:string -> string -> t
 
+(** [module_name t] returns the name used to create the module. *)
+val module_name : t -> string
+
 (** [create_with_eval ~name ~py_source] creates a new module defined by evaluating
     [py_source] which contains some python code.
 *)

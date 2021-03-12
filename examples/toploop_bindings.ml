@@ -102,12 +102,16 @@ let toploop_eval str ~verbose =
   | exn -> raise (Py.Err (SyntaxError, exn_to_string exn ~code:str))
 ;;
 
+let dummy_loc =
+  { Warnings.loc_start = Lexing.dummy_pos; loc_end = Lexing.dummy_pos; loc_ghost = false }
+;;
+
 let toploop_eval_and_get typerep str =
   let eval_value (type a) (typerep : a Typerep.t) =
     toploop_eval
       ~verbose:false
       (Printf.sprintf "let out : %s = (%s);;" (Py_typerep.to_ocaml typerep) str);
-    let path, _ = Env.lookup_value (Lident "out") !Toploop.toplevel_env in
+    let path, _ = Env.lookup_value ~loc:dummy_loc (Lident "out") !Toploop.toplevel_env in
     let obj = Toploop.eval_value_path !Toploop.toplevel_env path in
     Py_typerep.ocaml_to_python typerep (Caml.Obj.obj obj)
   in
@@ -117,7 +121,9 @@ let toploop_eval_and_get typerep str =
 
 let toploop_eval_and_get_no_type str =
   toploop_eval ~verbose:false (Printf.sprintf "let out = (%s);;" str);
-  let path, value_description = Env.lookup_value (Lident "out") !Toploop.toplevel_env in
+  let path, value_description =
+    Env.lookup_value ~loc:dummy_loc (Lident "out") !Toploop.toplevel_env
+  in
   let obj = Toploop.eval_value_path !Toploop.toplevel_env path in
   let (T typerep) =
     Type.of_type_desc value_description.val_type.desc ~env:(Module_env.create ())
@@ -132,10 +138,9 @@ let register_module ~module_name =
   Py_module.set_unit
     modl
     "eval"
-    [%map_open
-      let str = positional "str" string ~docstring:"ocaml code to run"
-      and verbose = keyword "verbose" bool ~default:false ~docstring:"verbose" in
-      toploop_eval str ~verbose]
+    (let%map_open str = positional "str" string ~docstring:"ocaml code to run"
+     and verbose = keyword "verbose" bool ~default:false ~docstring:"verbose" in
+     fun () -> toploop_eval str ~verbose)
     ~docstring:
       {|
     Evaluates an ocaml expression.
@@ -175,10 +180,10 @@ let register_module ~module_name =
   Py_module.set_unit
     modl
     "add_topdir"
-    [%map_open
-      let dir = positional "dir" string ~docstring:"directory to add" in
-      if !is_initialized then failwith "can only add directories before initialization.";
-      Topdirs.dir_directory dir]
+    (let%map_open dir = positional "dir" string ~docstring:"directory to add" in
+     fun () ->
+       if !is_initialized then failwith "can only add directories before initialization.";
+       Topdirs.dir_directory dir)
     ~docstring:
       {|
     Adds a new top-level directory in the cmi search path.
@@ -189,10 +194,9 @@ let register_module ~module_name =
   Py_module.set_unit
     modl
     "add_named_type"
-    [%map_open
-      let name = positional "name" string ~docstring:"type name"
-      and ocaml_type = positional "ocaml_type" string ~docstring:"ocaml type" in
-      Py_typerep.register_named_type ~name ~ocaml_type]
+    (let%map_open name = positional "name" string ~docstring:"type name"
+     and ocaml_type = positional "ocaml_type" string ~docstring:"ocaml type" in
+     fun () -> Py_typerep.register_named_type ~name ~ocaml_type)
     ~docstring:
       {|
     Registers an ocaml type so that it can be transfered to python in a caspule.

@@ -1,13 +1,18 @@
 open Base
 open Import
 
-type t = pyobject
+type t =
+  { module_name : string
+  ; modl : pyobject
+  }
 
 let create ?docstring module_name =
   let modl = Py.Import.add_module module_name in
   Option.iter docstring ~f:(Py.Module.set_docstring modl);
-  modl
+  { module_name; modl }
 ;;
+
+let module_name t = t.module_name
 
 let create_with_eval ~name ~py_source =
   let modl = Py.Import.add_module name in
@@ -21,12 +26,12 @@ let create_with_eval ~name ~py_source =
   Py.Dict.set_item_string modl_dict "__file__" (python_of_string "<pyml>");
   Py.Dict.set_item_string modl_dict "__builtins__" (Py.Eval.get_builtins ());
   let _ = Py.Run.eval ~globals:modl_dict ~locals:modl_dict ~start:File py_source in
-  modl
+  { module_name = name; modl }
 ;;
 
-let import = Py.import
-let set_value = Py.Module.set
-let pyobject t = t
+let import module_name = { module_name; modl = Py.import module_name }
+let set_value t = Py.Module.set t.modl
+let pyobject t = t.modl
 
 let keywords_of_python pyobject =
   match Py.Type.get pyobject with
@@ -55,7 +60,7 @@ let wrap_ocaml_errors f =
 
 let set_function t ?docstring name fn =
   let fn args = wrap_ocaml_errors (fun () -> fn args) in
-  Py.Module.set t name (Py.Callable.of_function ~name ?docstring fn)
+  set_value t name (Py.Callable.of_function ~name ?docstring fn)
 ;;
 
 let set_function_with_keywords t ?docstring name fn =
@@ -67,7 +72,7 @@ let set_function_with_keywords t ?docstring name fn =
     in
     wrap_ocaml_errors (fun () -> fn args keywords)
   in
-  Py.Module.set t name (Py.Callable.of_function_with_keywords ~name ?docstring fn)
+  set_value t name (Py.Callable.of_function_with_keywords ~name ?docstring fn)
 ;;
 
 let set t ?docstring name defunc =
@@ -92,5 +97,5 @@ let set_no_arg t ?docstring name fn =
 ;;
 
 module Raw = struct
-  let set = set
+  let set modl = set { modl; module_name = "<anon>" }
 end
