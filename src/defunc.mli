@@ -79,4 +79,25 @@ module Param : sig
   val star_kwargs
     :  docstring:string
     -> (string, pyobject, String.comparator_witness) Map.t t
+
+  (* A numpy array, note that the memory is shared between the ocaml and python sides. *)
+  val numpy_array
+    :  ('a, 'b) Bigarray.kind
+    -> 'c Bigarray.layout
+    -> ('a, 'b, 'c) Bigarray.Genarray.t Of_python.t
+
+  val numpy_array1
+    :  ('a, 'b) Bigarray.kind
+    -> 'c Bigarray.layout
+    -> ('a, 'b, 'c) Bigarray.Array1.t Of_python.t
+
+  val numpy_array2
+    :  ('a, 'b) Bigarray.kind
+    -> 'c Bigarray.layout
+    -> ('a, 'b, 'c) Bigarray.Array2.t Of_python.t
+
+  val numpy_array3
+    :  ('a, 'b) Bigarray.kind
+    -> 'c Bigarray.layout
+    -> ('a, 'b, 'c) Bigarray.Array3.t Of_python.t
 end

@@ -439,4 +439,65 @@ module Param = struct
 
   let star_args ~docstring = Star_args docstring
   let star_kwargs ~docstring = Star_kwargs docstring
+
+  let kind_to_string : type a b. (a, b) Bigarray.kind -> string = function
+    | Float32 -> "np.float32"
+    | Float64 -> "np.float64"
+    | Int8_unsigned -> "np.uint8"
+    | Int8_signed -> "np.int8"
+    | Int16_unsigned -> "np.uint16"
+    | Int16_signed -> "np.int16"
+    | Int32 -> "np.int32"
+    | Int64 -> "np.int64"
+    | Int -> "np.int"
+    | Char -> "np.byte"
+    | Nativeint -> "np.int"
+    | Complex32 -> "np.complex32"
+    | Complex64 -> "np.complex64"
+  ;;
+
+  let layout_to_string : type c. c Bigarray.layout -> string = function
+    | C_layout -> "C"
+    | Fortran_layout -> "F"
+  ;;
+
+  let to_numpy_array ?dims kind layout p =
+    if not (Py.Object.is_instance p (Py.Array.pyarray_type ()))
+    then value_errorf "expected a numpy array, got %s" (Py.Type.get p |> Py.Type.name);
+    let bigarray = Numpy.to_bigarray kind layout p in
+    Option.iter dims ~f:(fun dims ->
+      let num_dims = Bigarray.Genarray.num_dims bigarray in
+      if dims <> num_dims
+      then value_errorf "expected a numpy array with %d dims, got %d" dims num_dims);
+    bigarray
+  ;;
+
+  let numpy_type_name ?dims kind layout =
+    Printf.sprintf
+      "np.array(dtype=%s, order='%s'%s)"
+      (kind_to_string kind)
+      (layout_to_string layout)
+      (Option.value_map dims ~default:"" ~f:(Printf.sprintf ", dims=%d"))
+  ;;
+
+  let numpy_array kind layout =
+    Of_python.create
+      ~type_name:(numpy_type_name kind layout)
+      ~conv:(to_numpy_array kind layout)
+  ;;
+
+  let numpy_array1 kind layout =
+    Of_python.create ~type_name:(numpy_type_name ~dims:1 kind layout) ~conv:(fun p ->
+      to_numpy_array ~dims:1 kind layout p |> Bigarray.array1_of_genarray)
+  ;;
+
+  let numpy_array2 kind layout =
+    Of_python.create ~type_name:(numpy_type_name ~dims:2 kind layout) ~conv:(fun p ->
+      to_numpy_array ~dims:2 kind layout p |> Bigarray.array2_of_genarray)
+  ;;
+
+  let numpy_array3 kind layout =
+    Of_python.create ~type_name:(numpy_type_name ~dims:3 kind layout) ~conv:(fun p ->
+      to_numpy_array ~dims:3 kind layout p |> Bigarray.array3_of_genarray)
+  ;;
 end
