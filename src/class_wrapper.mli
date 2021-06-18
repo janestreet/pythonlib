@@ -12,6 +12,8 @@ module Init : sig
   type 'a t
 
   val create : ?docstring:string -> ('a cls -> args:pyobject list -> 'a) -> 'a t
+  val defunc : ?docstring:string -> ('a cls -> 'a) Defunc.t -> 'a t
+  val no_arg : ?docstring:string -> ('a cls -> 'a) -> 'a t
 end
 
 module Method : sig

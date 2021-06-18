@@ -408,15 +408,15 @@ module Param = struct
          | List | Tuple -> ()
          | otherwise ->
            Printf.failwithf "not a list or a tuple (%s)" (Py.Type.name otherwise) ());
-        Py.List.to_list_map o.conv python_value)
+        py_list_to_list_map_safe o.conv python_value)
   ;;
 
   let list_or_iter (o : _ Of_python.t) =
     Of_python.create ~type_name:(Printf.sprintf "[%s]" o.type_name) ~conv:(fun p ->
-      match to_iterable p with
+      match iterable_to_list p with
       | None ->
         Printf.failwithf "not a list/tuple/iter (%s)" (Py.Type.get p |> Py.Type.name) ()
-      | Some l -> Py.List.to_list_map o.conv l)
+      | Some l -> py_list_to_list_map_safe o.conv l)
   ;;
 
   let one_or_tuple_or_list (o : _ Of_python.t) =

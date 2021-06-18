@@ -13,564 +13,564 @@ let protect ~f x =
 ;;
 
 let bin_shape_t () = (* Bin_prot__.Shape.t *)
-  Core_kernel__Date.bin_shape_t |> python_of_bin_prot____shape__t
+  Core__Date.bin_shape_t |> python_of_bin_prot____shape__t
 ;;
 
-let t_of_sexp () = (* Sexplib0__.Sexp.t -> Core_kernel__Date.t *)
+let t_of_sexp () = (* Sexplib0__.Sexp.t -> Core__Date.t *)
   let%map_open
     positional_1 = positional "positional_1" param_sexplib0____sexp__t ~docstring:"Sexplib0__.Sexp.t"
   in
   fun () ->
-  Core_kernel__Date.t_of_sexp
+  Core__Date.t_of_sexp
     positional_1
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let sexp_of_t () = (* Core_kernel__Date.t -> Sexplib0__.Sexp.t *)
+let sexp_of_t () = (* Core__Date.t -> Sexplib0__.Sexp.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.sexp_of_t
+  Core__Date.sexp_of_t
     positional_1
   |> python_of_sexplib0____sexp__t
 ;;
 
-let hash_fold_t () = (* Ppx_hash_lib.Std.Hash.state -> Core_kernel__Date.t -> Ppx_hash_lib.Std.Hash.state *)
+let hash_fold_t () = (* Ppx_hash_lib.Std.Hash.state -> Core__Date.t -> Ppx_hash_lib.Std.Hash.state *)
   let%map_open
     positional_1 = positional "positional_1" param_ppx_hash_lib__std__hash__state ~docstring:"Ppx_hash_lib.Std.Hash.state" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.hash_fold_t
+  Core__Date.hash_fold_t
     positional_1
     positional_2
   |> python_of_ppx_hash_lib__std__hash__state
 ;;
 
-let hash () = (* Core_kernel__Date.t -> Ppx_hash_lib.Std.Hash.hash_value *)
+let hash () = (* Core__Date.t -> Ppx_hash_lib.Std.Hash.hash_value *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.hash
+  Core__Date.hash
     positional_1
   |> python_of_ppx_hash_lib__std__hash__hash_value
 ;;
 
-let of_string () = (* string -> Core_kernel__Date.t *)
+let of_string () = (* string -> Core__Date.t *)
   let%map_open
     positional_1 = positional "positional_1" string ~docstring:"string"
   in
   fun () ->
-  Core_kernel__Date.of_string
+  Core__Date.of_string
     positional_1
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let to_string () = (* Core_kernel__Date.t -> string *)
+let to_string () = (* Core__Date.t -> string *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.to_string
+  Core__Date.to_string
     positional_1
   |> python_of_string
 ;;
 
-let greatereq () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> bool *)
+let greatereq () = (* Core__Date.t -> Core__Date.t -> bool *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.(>=)
+  Core__Date.(>=)
     positional_1
     positional_2
   |> python_of_bool
 ;;
 
-let lowereq () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> bool *)
+let lowereq () = (* Core__Date.t -> Core__Date.t -> bool *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.(<=)
+  Core__Date.(<=)
     positional_1
     positional_2
   |> python_of_bool
 ;;
 
-let eq () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> bool *)
+let eq () = (* Core__Date.t -> Core__Date.t -> bool *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.(=)
+  Core__Date.(=)
     positional_1
     positional_2
   |> python_of_bool
 ;;
 
-let greater () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> bool *)
+let greater () = (* Core__Date.t -> Core__Date.t -> bool *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.(>)
+  Core__Date.(>)
     positional_1
     positional_2
   |> python_of_bool
 ;;
 
-let lower () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> bool *)
+let lower () = (* Core__Date.t -> Core__Date.t -> bool *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.(<)
+  Core__Date.(<)
     positional_1
     positional_2
   |> python_of_bool
 ;;
 
-let neq () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> bool *)
+let neq () = (* Core__Date.t -> Core__Date.t -> bool *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.(<>)
+  Core__Date.(<>)
     positional_1
     positional_2
   |> python_of_bool
 ;;
 
-let equal () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> bool *)
+let equal () = (* Core__Date.t -> Core__Date.t -> bool *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.equal
+  Core__Date.equal
     positional_1
     positional_2
   |> python_of_bool
 ;;
 
-let compare () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> int *)
+let compare () = (* Core__Date.t -> Core__Date.t -> int *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.compare
+  Core__Date.compare
     positional_1
     positional_2
   |> python_of_int
 ;;
 
-let min () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> Core_kernel__Date.t *)
+let min () = (* Core__Date.t -> Core__Date.t -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.min
+  Core__Date.min
     positional_1
     positional_2
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let max () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> Core_kernel__Date.t *)
+let max () = (* Core__Date.t -> Core__Date.t -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.max
+  Core__Date.max
     positional_1
     positional_2
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let ascending () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> int *)
+let ascending () = (* Core__Date.t -> Core__Date.t -> int *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.ascending
-    positional_1
-    positional_2
-  |> python_of_int
-;;
-
-let descending () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> int *)
-  let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
-  in
-  fun () ->
-  Core_kernel__Date.descending
+  Core__Date.ascending
     positional_1
     positional_2
   |> python_of_int
 ;;
 
-let between () = (* Core_kernel__Date.t -> low:Core_kernel__Date.t -> high:Core_kernel__Date.t -> bool *)
+let descending () = (* Core__Date.t -> Core__Date.t -> int *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    low = keyword "low" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    high = keyword "high" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.between
+  Core__Date.descending
+    positional_1
+    positional_2
+  |> python_of_int
+;;
+
+let between () = (* Core__Date.t -> low:Core__Date.t -> high:Core__Date.t -> bool *)
+  let%map_open
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    low = keyword "low" param_core__date__t ~docstring:"Core__Date.t" and
+    high = keyword "high" param_core__date__t ~docstring:"Core__Date.t"
+  in
+  fun () ->
+  Core__Date.between
     positional_1
     ~low
     ~high
   |> python_of_bool
 ;;
 
-let clamp_exn () = (* Core_kernel__Date.t -> min:Core_kernel__Date.t -> max:Core_kernel__Date.t -> Core_kernel__Date.t *)
+let clamp_exn () = (* Core__Date.t -> min:Core__Date.t -> max:Core__Date.t -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    min = keyword "min" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    max = keyword "max" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    min = keyword "min" param_core__date__t ~docstring:"Core__Date.t" and
+    max = keyword "max" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.clamp_exn
+  Core__Date.clamp_exn
     positional_1
     ~min
     ~max
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let pp () = (* Base__.Formatter.t -> Core_kernel__Date.t -> unit *)
+let pp () = (* Base__.Formatter.t -> Core__Date.t -> unit *)
   let%map_open
     positional_1 = positional "positional_1" param_base____formatter__t ~docstring:"Base__.Formatter.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.pp
+  Core__Date.pp
     positional_1
     positional_2
   |> python_of_unit
 ;;
 
-let create_exn () = (* y:int -> m:Core_kernel__.Month.t -> d:int -> Core_kernel__Date.t *)
+let create_exn () = (* y:int -> m:Core__.Month.t -> d:int -> Core__Date.t *)
   let%map_open
     y = keyword "y" int ~docstring:"int" and
-    m = keyword "m" param_core_kernel____month__t ~docstring:"Core_kernel__.Month.t" and
+    m = keyword "m" param_core____month__t ~docstring:"Core__.Month.t" and
     d = keyword "d" int ~docstring:"int"
   in
   fun () ->
-  Core_kernel__Date.create_exn
+  Core__Date.create_exn
     ~y
     ~m
     ~d
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let of_string_iso8601_basic () = (* string -> pos:int -> Core_kernel__Date.t *)
+let of_string_iso8601_basic () = (* string -> pos:int -> Core__Date.t *)
   let%map_open
     positional_1 = positional "positional_1" string ~docstring:"string" and
     pos = keyword "pos" int ~docstring:"int"
   in
   fun () ->
-  Core_kernel__Date.of_string_iso8601_basic
+  Core__Date.of_string_iso8601_basic
     positional_1
     ~pos
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let to_string_iso8601_basic () = (* Core_kernel__Date.t -> string *)
+let to_string_iso8601_basic () = (* Core__Date.t -> string *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.to_string_iso8601_basic
+  Core__Date.to_string_iso8601_basic
     positional_1
   |> python_of_string
 ;;
 
-let to_string_american () = (* Core_kernel__Date.t -> string *)
+let to_string_american () = (* Core__Date.t -> string *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.to_string_american
+  Core__Date.to_string_american
     positional_1
   |> python_of_string
 ;;
 
-let day () = (* Core_kernel__Date.t -> int *)
+let day () = (* Core__Date.t -> int *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.day
+  Core__Date.day
     positional_1
   |> python_of_int
 ;;
 
-let month () = (* Core_kernel__Date.t -> Core_kernel__.Month.t *)
+let month () = (* Core__Date.t -> Core__.Month.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.month
+  Core__Date.month
     positional_1
-  |> python_of_core_kernel____month__t
+  |> python_of_core____month__t
 ;;
 
-let year () = (* Core_kernel__Date.t -> int *)
+let year () = (* Core__Date.t -> int *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.year
+  Core__Date.year
     positional_1
   |> python_of_int
 ;;
 
-let day_of_week () = (* Core_kernel__Date.t -> Core_kernel__.Day_of_week.t *)
+let day_of_week () = (* Core__Date.t -> Core__.Day_of_week.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.day_of_week
+  Core__Date.day_of_week
     positional_1
-  |> python_of_core_kernel____day_of_week__t
+  |> python_of_core____day_of_week__t
 ;;
 
-let week_number_and_year () = (* Core_kernel__Date.t -> (int, int) *)
+let week_number_and_year () = (* Core__Date.t -> (int, int) *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.week_number_and_year
+  Core__Date.week_number_and_year
     positional_1
   |> (fun (t0, t1) -> Py.Tuple.of_list [python_of_int t0; python_of_int t1])
 ;;
 
-let week_number () = (* Core_kernel__Date.t -> int *)
+let week_number () = (* Core__Date.t -> int *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.week_number
+  Core__Date.week_number
     positional_1
   |> python_of_int
 ;;
 
-let is_weekend () = (* Core_kernel__Date.t -> bool *)
+let is_weekend () = (* Core__Date.t -> bool *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.is_weekend
+  Core__Date.is_weekend
     positional_1
   |> python_of_bool
 ;;
 
-let is_weekday () = (* Core_kernel__Date.t -> bool *)
+let is_weekday () = (* Core__Date.t -> bool *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.is_weekday
+  Core__Date.is_weekday
     positional_1
   |> python_of_bool
 ;;
 
-let add_days () = (* Core_kernel__Date.t -> int -> Core_kernel__Date.t *)
+let add_days () = (* Core__Date.t -> int -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
     positional_2 = positional "positional_2" int ~docstring:"int"
   in
   fun () ->
-  Core_kernel__Date.add_days
+  Core__Date.add_days
     positional_1
     positional_2
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let add_months () = (* Core_kernel__Date.t -> int -> Core_kernel__Date.t *)
+let add_months () = (* Core__Date.t -> int -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
     positional_2 = positional "positional_2" int ~docstring:"int"
   in
   fun () ->
-  Core_kernel__Date.add_months
+  Core__Date.add_months
     positional_1
     positional_2
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let add_years () = (* Core_kernel__Date.t -> int -> Core_kernel__Date.t *)
+let add_years () = (* Core__Date.t -> int -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
     positional_2 = positional "positional_2" int ~docstring:"int"
   in
   fun () ->
-  Core_kernel__Date.add_years
+  Core__Date.add_years
     positional_1
     positional_2
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let diff () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> int *)
+let diff () = (* Core__Date.t -> Core__Date.t -> int *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.diff
+  Core__Date.diff
     positional_1
     positional_2
   |> python_of_int
 ;;
 
-let diff_weekdays () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> int *)
+let diff_weekdays () = (* Core__Date.t -> Core__Date.t -> int *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.diff_weekdays
+  Core__Date.diff_weekdays
     positional_1
     positional_2
   |> python_of_int
 ;;
 
-let diff_weekend_days () = (* Core_kernel__Date.t -> Core_kernel__Date.t -> int *)
+let diff_weekend_days () = (* Core__Date.t -> Core__Date.t -> int *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    positional_2 = positional "positional_2" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.diff_weekend_days
+  Core__Date.diff_weekend_days
     positional_1
     positional_2
   |> python_of_int
 ;;
 
-let add_weekdays_rounding_backward () = (* Core_kernel__Date.t -> int -> Core_kernel__Date.t *)
+let add_weekdays_rounding_backward () = (* Core__Date.t -> int -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
     positional_2 = positional "positional_2" int ~docstring:"int"
   in
   fun () ->
-  Core_kernel__Date.add_weekdays_rounding_backward
+  Core__Date.add_weekdays_rounding_backward
     positional_1
     positional_2
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let add_weekdays_rounding_forward () = (* Core_kernel__Date.t -> int -> Core_kernel__Date.t *)
+let add_weekdays_rounding_forward () = (* Core__Date.t -> int -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
     positional_2 = positional "positional_2" int ~docstring:"int"
   in
   fun () ->
-  Core_kernel__Date.add_weekdays_rounding_forward
+  Core__Date.add_weekdays_rounding_forward
     positional_1
     positional_2
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let add_weekdays_deprecated () = (* Core_kernel__Date.t -> int -> Core_kernel__Date.t *)
+let add_weekdays_deprecated () = (* Core__Date.t -> int -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
     positional_2 = positional "positional_2" int ~docstring:"int"
   in
   fun () ->
-  Core_kernel__Date.add_weekdays
+  Core__Date.add_weekdays
     positional_1
     positional_2
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let add_weekdays_rounding_in_direction_of_step () = (* Core_kernel__Date.t -> int -> Core_kernel__Date.t *)
+let add_weekdays_rounding_in_direction_of_step () = (* Core__Date.t -> int -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
     positional_2 = positional "positional_2" int ~docstring:"int"
   in
   fun () ->
-  Core_kernel__Date.add_weekdays_rounding_in_direction_of_step
+  Core__Date.add_weekdays_rounding_in_direction_of_step
     positional_1
     positional_2
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let dates_between () = (* min:Core_kernel__Date.t -> max:Core_kernel__Date.t -> Core_kernel__Date.t list *)
+let dates_between () = (* min:Core__Date.t -> max:Core__Date.t -> Core__Date.t list *)
   let%map_open
-    min = keyword "min" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    max = keyword "max" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    min = keyword "min" param_core__date__t ~docstring:"Core__Date.t" and
+    max = keyword "max" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.dates_between
+  Core__Date.dates_between
     ~min
     ~max
-  |> (python_of_list python_of_core_kernel__date__t)
+  |> (python_of_list python_of_core__date__t)
 ;;
 
-let weekdays_between () = (* min:Core_kernel__Date.t -> max:Core_kernel__Date.t -> Core_kernel__Date.t list *)
+let weekdays_between () = (* min:Core__Date.t -> max:Core__Date.t -> Core__Date.t list *)
   let%map_open
-    min = keyword "min" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    max = keyword "max" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    min = keyword "min" param_core__date__t ~docstring:"Core__Date.t" and
+    max = keyword "max" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.weekdays_between
+  Core__Date.weekdays_between
     ~min
     ~max
-  |> (python_of_list python_of_core_kernel__date__t)
+  |> (python_of_list python_of_core__date__t)
 ;;
 
-let previous_weekday () = (* Core_kernel__Date.t -> Core_kernel__Date.t *)
+let previous_weekday () = (* Core__Date.t -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.previous_weekday
+  Core__Date.previous_weekday
     positional_1
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let following_weekday () = (* Core_kernel__Date.t -> Core_kernel__Date.t *)
+let following_weekday () = (* Core__Date.t -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
-  Core_kernel__Date.following_weekday
+  Core__Date.following_weekday
     positional_1
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let first_strictly_after () = (* Core_kernel__Date.t -> on:Core_kernel__.Day_of_week.t -> Core_kernel__Date.t *)
+let first_strictly_after () = (* Core__Date.t -> on:Core__.Day_of_week.t -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t" and
-    on = keyword "on" param_core_kernel____day_of_week__t ~docstring:"Core_kernel__.Day_of_week.t"
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
+    on = keyword "on" param_core____day_of_week__t ~docstring:"Core__.Day_of_week.t"
   in
   fun () ->
-  Core_kernel__Date.first_strictly_after
+  Core__Date.first_strictly_after
     positional_1
     ~on
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let days_in_month () = (* year:int -> month:Core_kernel__.Month.t -> int *)
+let days_in_month () = (* year:int -> month:Core__.Month.t -> int *)
   let%map_open
     year = keyword "year" int ~docstring:"int" and
-    month = keyword "month" param_core_kernel____month__t ~docstring:"Core_kernel__.Month.t"
+    month = keyword "month" param_core____month__t ~docstring:"Core__.Month.t"
   in
   fun () ->
-  Core_kernel__Date.days_in_month
+  Core__Date.days_in_month
     ~year
     ~month
   |> python_of_int
@@ -581,62 +581,62 @@ let is_leap_year () = (* year:int -> bool *)
     year = keyword "year" int ~docstring:"int"
   in
   fun () ->
-  Core_kernel__Date.is_leap_year
+  Core__Date.is_leap_year
     ~year
   |> python_of_bool
 ;;
 
-let unix_epoch () = (* Core_kernel__Date.t *)
-  Core_kernel__Date.unix_epoch |> python_of_core_kernel__date__t
+let unix_epoch () = (* Core__Date.t *)
+  Core__Date.unix_epoch |> python_of_core__date__t
 ;;
 
 module Days = struct
-  let of_date () = (* Core_kernel__Date.t -> Core_kernel__Date.Days.t *)
+  let of_date () = (* Core__Date.t -> Core__Date.Days.t *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+      positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
     in
     fun () ->
-    Core_kernel__Date.Days.of_date
+    Core__Date.Days.of_date
       positional_1
-    |> python_of_core_kernel__date__days__t
+    |> python_of_core__date__days__t
   ;;
 
-  let to_date () = (* Core_kernel__Date.Days.t -> Core_kernel__Date.t *)
+  let to_date () = (* Core__Date.Days.t -> Core__Date.t *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__days__t ~docstring:"Core_kernel__Date.Days.t"
+      positional_1 = positional "positional_1" param_core__date__days__t ~docstring:"Core__Date.Days.t"
     in
     fun () ->
-    Core_kernel__Date.Days.to_date
+    Core__Date.Days.to_date
       positional_1
-    |> python_of_core_kernel__date__t
+    |> python_of_core__date__t
   ;;
 
-  let diff () = (* Core_kernel__Date.Days.t -> Core_kernel__Date.Days.t -> int *)
+  let diff () = (* Core__Date.Days.t -> Core__Date.Days.t -> int *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__days__t ~docstring:"Core_kernel__Date.Days.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__days__t ~docstring:"Core_kernel__Date.Days.t"
+      positional_1 = positional "positional_1" param_core__date__days__t ~docstring:"Core__Date.Days.t" and
+      positional_2 = positional "positional_2" param_core__date__days__t ~docstring:"Core__Date.Days.t"
     in
     fun () ->
-    Core_kernel__Date.Days.diff
+    Core__Date.Days.diff
       positional_1
       positional_2
     |> python_of_int
   ;;
 
-  let add_days () = (* Core_kernel__Date.Days.t -> int -> Core_kernel__Date.Days.t *)
+  let add_days () = (* Core__Date.Days.t -> int -> Core__Date.Days.t *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__days__t ~docstring:"Core_kernel__Date.Days.t" and
+      positional_1 = positional "positional_1" param_core__date__days__t ~docstring:"Core__Date.Days.t" and
       positional_2 = positional "positional_2" int ~docstring:"int"
     in
     fun () ->
-    Core_kernel__Date.Days.add_days
+    Core__Date.Days.add_days
       positional_1
       positional_2
-    |> python_of_core_kernel__date__days__t
+    |> python_of_core__date__days__t
   ;;
 
-  let unix_epoch () = (* Core_kernel__Date.Days.t *)
-    Core_kernel__Date.Days.unix_epoch |> python_of_core_kernel__date__days__t
+  let unix_epoch () = (* Core__Date.Days.t *)
+    Core__Date.Days.unix_epoch |> python_of_core__date__days__t
   ;;
 
 
@@ -650,134 +650,134 @@ module Days = struct
     modl
 end;;
 module Option = struct
-  let hash_fold_t () = (* Ppx_hash_lib.Std.Hash.state -> Core_kernel__Date.Option.t -> Ppx_hash_lib.Std.Hash.state *)
+  let hash_fold_t () = (* Ppx_hash_lib.Std.Hash.state -> Core__Date.Option.t -> Ppx_hash_lib.Std.Hash.state *)
     let%map_open
       positional_1 = positional "positional_1" param_ppx_hash_lib__std__hash__state ~docstring:"Ppx_hash_lib.Std.Hash.state" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.hash_fold_t
+    Core__Date.Option.hash_fold_t
       positional_1
       positional_2
     |> python_of_ppx_hash_lib__std__hash__state
   ;;
 
-  let hash () = (* Core_kernel__Date.Option.t -> Ppx_hash_lib.Std.Hash.hash_value *)
+  let hash () = (* Core__Date.Option.t -> Ppx_hash_lib.Std.Hash.hash_value *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.hash
+    Core__Date.Option.hash
       positional_1
     |> python_of_ppx_hash_lib__std__hash__hash_value
   ;;
 
-  let sexp_of_t () = (* Core_kernel__Date.Option.t -> Ppx_sexp_conv_lib.Sexp.t *)
+  let sexp_of_t () = (* Core__Date.Option.t -> Ppx_sexp_conv_lib.Sexp.t *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.sexp_of_t
+    Core__Date.Option.sexp_of_t
       positional_1
     |> python_of_ppx_sexp_conv_lib__sexp__t
   ;;
 
-  let none () = (* Core_kernel__Date.Option.t *)
-    Core_kernel__Date.Option.none |> python_of_core_kernel__date__option__t
+  let none () = (* Core__Date.Option.t *)
+    Core__Date.Option.none |> python_of_core__date__option__t
   ;;
 
-  let some () = (* Core_kernel__Date.t -> Core_kernel__Date.Option.t *)
+  let some () = (* Core__Date.t -> Core__Date.Option.t *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+      positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
     in
     fun () ->
-    Core_kernel__Date.Option.some
+    Core__Date.Option.some
       positional_1
-    |> python_of_core_kernel__date__option__t
+    |> python_of_core__date__option__t
   ;;
 
-  let some_is_representable () = (* Core_kernel__Date.t -> bool *)
+  let some_is_representable () = (* Core__Date.t -> bool *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+      positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
     in
     fun () ->
-    Core_kernel__Date.Option.some_is_representable
-      positional_1
-    |> python_of_bool
-  ;;
-
-  let is_none () = (* Core_kernel__Date.Option.t -> bool *)
-    let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
-    in
-    fun () ->
-    Core_kernel__Date.Option.is_none
+    Core__Date.Option.some_is_representable
       positional_1
     |> python_of_bool
   ;;
 
-  let is_some () = (* Core_kernel__Date.Option.t -> bool *)
+  let is_none () = (* Core__Date.Option.t -> bool *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.is_some
+    Core__Date.Option.is_none
       positional_1
     |> python_of_bool
   ;;
 
-  let value () = (* Core_kernel__Date.Option.t -> default:Core_kernel__Date.t -> Core_kernel__Date.t *)
+  let is_some () = (* Core__Date.Option.t -> bool *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      default = keyword "default" param_core_kernel__date__t ~docstring:"Core_kernel__Date.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.value
+    Core__Date.Option.is_some
+      positional_1
+    |> python_of_bool
+  ;;
+
+  let value () = (* Core__Date.Option.t -> default:Core__Date.t -> Core__Date.t *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      default = keyword "default" param_core__date__t ~docstring:"Core__Date.t"
+    in
+    fun () ->
+    Core__Date.Option.value
       positional_1
       ~default
-    |> python_of_core_kernel__date__t
+    |> python_of_core__date__t
   ;;
 
-  let value_exn () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.t *)
+  let value_exn () = (* Core__Date.Option.t -> Core__Date.t *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.value_exn
+    Core__Date.Option.value_exn
       positional_1
-    |> python_of_core_kernel__date__t
+    |> python_of_core__date__t
   ;;
 
-  let unchecked_value () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.t *)
+  let unchecked_value () = (* Core__Date.Option.t -> Core__Date.t *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.unchecked_value
+    Core__Date.Option.unchecked_value
       positional_1
-    |> python_of_core_kernel__date__t
+    |> python_of_core__date__t
   ;;
 
   module Optional_syntax = struct
     module Optional_syntax = struct
-      let is_none () = (* Core_kernel__Date.Option.t -> bool *)
+      let is_none () = (* Core__Date.Option.t -> bool *)
         let%map_open
-          positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+          positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t"
         in
         fun () ->
-        Core_kernel__Date.Option.Optional_syntax.Optional_syntax.is_none
+        Core__Date.Option.Optional_syntax.Optional_syntax.is_none
           positional_1
         |> python_of_bool
       ;;
 
-      let unsafe_value () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.t *)
+      let unsafe_value () = (* Core__Date.Option.t -> Core__Date.t *)
         let%map_open
-          positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+          positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t"
         in
         fun () ->
-        Core_kernel__Date.Option.Optional_syntax.Optional_syntax.unsafe_value
+        Core__Date.Option.Optional_syntax.Optional_syntax.unsafe_value
           positional_1
-        |> python_of_core_kernel__date__t
+        |> python_of_core__date__t
       ;;
 
 
@@ -790,180 +790,180 @@ module Option = struct
 
     let register_module ~module_name =
       let modl = Py_module.create module_name in
-      let sub_module = Optional_syntax.register_module ~module_name:"core_kernel__date__option__optional_syntax__optional_syntax__optional_syntax" in
+      let sub_module = Optional_syntax.register_module ~module_name:"core__date__option__optional_syntax__optional_syntax__optional_syntax" in
       Py_module.set_value modl "optional_syntax" (Py_module.pyobject sub_module);
       modl
   end;;
-  let greatereq () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+  let greatereq () = (* Core__Date.Option.t -> Core__Date.Option.t -> bool *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.(>=)
+    Core__Date.Option.(>=)
       positional_1
       positional_2
     |> python_of_bool
   ;;
 
-  let lowereq () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+  let lowereq () = (* Core__Date.Option.t -> Core__Date.Option.t -> bool *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.(<=)
+    Core__Date.Option.(<=)
       positional_1
       positional_2
     |> python_of_bool
   ;;
 
-  let eq () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+  let eq () = (* Core__Date.Option.t -> Core__Date.Option.t -> bool *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.(=)
+    Core__Date.Option.(=)
       positional_1
       positional_2
     |> python_of_bool
   ;;
 
-  let greater () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+  let greater () = (* Core__Date.Option.t -> Core__Date.Option.t -> bool *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.(>)
+    Core__Date.Option.(>)
       positional_1
       positional_2
     |> python_of_bool
   ;;
 
-  let lower () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+  let lower () = (* Core__Date.Option.t -> Core__Date.Option.t -> bool *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.(<)
+    Core__Date.Option.(<)
       positional_1
       positional_2
     |> python_of_bool
   ;;
 
-  let neq () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+  let neq () = (* Core__Date.Option.t -> Core__Date.Option.t -> bool *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.(<>)
+    Core__Date.Option.(<>)
       positional_1
       positional_2
     |> python_of_bool
   ;;
 
-  let equal () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> bool *)
+  let equal () = (* Core__Date.Option.t -> Core__Date.Option.t -> bool *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.equal
+    Core__Date.Option.equal
       positional_1
       positional_2
     |> python_of_bool
   ;;
 
-  let compare () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> int *)
+  let compare () = (* Core__Date.Option.t -> Core__Date.Option.t -> int *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.compare
+    Core__Date.Option.compare
       positional_1
       positional_2
     |> python_of_int
   ;;
 
-  let min () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t *)
+  let min () = (* Core__Date.Option.t -> Core__Date.Option.t -> Core__Date.Option.t *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.min
+    Core__Date.Option.min
       positional_1
       positional_2
-    |> python_of_core_kernel__date__option__t
+    |> python_of_core__date__option__t
   ;;
 
-  let max () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t *)
+  let max () = (* Core__Date.Option.t -> Core__Date.Option.t -> Core__Date.Option.t *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.max
+    Core__Date.Option.max
       positional_1
       positional_2
-    |> python_of_core_kernel__date__option__t
+    |> python_of_core__date__option__t
   ;;
 
-  let ascending () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> int *)
+  let ascending () = (* Core__Date.Option.t -> Core__Date.Option.t -> int *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.ascending
-      positional_1
-      positional_2
-    |> python_of_int
-  ;;
-
-  let descending () = (* Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t -> int *)
-    let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      positional_2 = positional "positional_2" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
-    in
-    fun () ->
-    Core_kernel__Date.Option.descending
+    Core__Date.Option.ascending
       positional_1
       positional_2
     |> python_of_int
   ;;
 
-  let between () = (* Core_kernel__Date.Option.t -> low:Core_kernel__Date.Option.t -> high:Core_kernel__Date.Option.t -> bool *)
+  let descending () = (* Core__Date.Option.t -> Core__Date.Option.t -> int *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      low = keyword "low" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      high = keyword "high" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.between
+    Core__Date.Option.descending
+      positional_1
+      positional_2
+    |> python_of_int
+  ;;
+
+  let between () = (* Core__Date.Option.t -> low:Core__Date.Option.t -> high:Core__Date.Option.t -> bool *)
+    let%map_open
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      low = keyword "low" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      high = keyword "high" param_core__date__option__t ~docstring:"Core__Date.Option.t"
+    in
+    fun () ->
+    Core__Date.Option.between
       positional_1
       ~low
       ~high
     |> python_of_bool
   ;;
 
-  let clamp_exn () = (* Core_kernel__Date.Option.t -> min:Core_kernel__Date.Option.t -> max:Core_kernel__Date.Option.t -> Core_kernel__Date.Option.t *)
+  let clamp_exn () = (* Core__Date.Option.t -> min:Core__Date.Option.t -> max:Core__Date.Option.t -> Core__Date.Option.t *)
     let%map_open
-      positional_1 = positional "positional_1" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      min = keyword "min" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t" and
-      max = keyword "max" param_core_kernel__date__option__t ~docstring:"Core_kernel__Date.Option.t"
+      positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      min = keyword "min" param_core__date__option__t ~docstring:"Core__Date.Option.t" and
+      max = keyword "max" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
-    Core_kernel__Date.Option.clamp_exn
+    Core__Date.Option.clamp_exn
       positional_1
       ~min
       ~max
-    |> python_of_core_kernel__date__option__t
+    |> python_of_core__date__option__t
   ;;
 
 
@@ -980,7 +980,7 @@ module Option = struct
     Py_module.set modl "value" (value ());
     Py_module.set modl "value_exn" (value_exn ());
     Py_module.set modl "unchecked_value" (unchecked_value ());
-    let sub_module = Optional_syntax.register_module ~module_name:"core_kernel__date__option__optional_syntax__optional_syntax" in
+    let sub_module = Optional_syntax.register_module ~module_name:"core__date__option__optional_syntax__optional_syntax" in
     Py_module.set_value modl "optional_syntax" (Py_module.pyobject sub_module);
     Py_module.set modl "greatereq" (greatereq ());
     Py_module.set modl "lowereq" (lowereq ());
@@ -998,26 +998,26 @@ module Option = struct
     Py_module.set modl "clamp_exn" (clamp_exn ());
     modl
 end;;
-let of_time () = (* Core_kernel__.Time_float.t -> zone:Core_kernel__.Time_float.Zone.t -> Core_kernel__Date.t *)
+let of_time () = (* Core__.Time_float.t -> zone:Core__.Time_float.Zone.t -> Core__Date.t *)
   let%map_open
-    positional_1 = positional "positional_1" param_core_kernel____time_float__t ~docstring:"Core_kernel__.Time_float.t" and
-    zone = keyword "zone" param_core_kernel____time_float__zone__t ~docstring:"Core_kernel__.Time_float.Zone.t"
+    positional_1 = positional "positional_1" param_core____time_float__t ~docstring:"Core__.Time_float.t" and
+    zone = keyword "zone" param_core____time_float__zone__t ~docstring:"Core__.Time_float.Zone.t"
   in
   fun () ->
-  Core_kernel__Date.of_time
+  Core__Date.of_time
     positional_1
     ~zone
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
-let today () = (* zone:Core_kernel__.Time_float.Zone.t -> Core_kernel__Date.t *)
+let today () = (* zone:Core__.Time_float.Zone.t -> Core__Date.t *)
   let%map_open
-    zone = keyword "zone" param_core_kernel____time_float__zone__t ~docstring:"Core_kernel__.Time_float.Zone.t"
+    zone = keyword "zone" param_core____time_float__zone__t ~docstring:"Core__.Time_float.Zone.t"
   in
   fun () ->
-  Core_kernel__Date.today
+  Core__Date.today
     ~zone
-  |> python_of_core_kernel__date__t
+  |> python_of_core__date__t
 ;;
 
 
@@ -1075,9 +1075,9 @@ let register_module ~module_name =
   Py_module.set modl "days_in_month" (days_in_month ());
   Py_module.set modl "is_leap_year" (is_leap_year ());
   Py_module.set_no_arg modl "unix_epoch" unix_epoch;
-  let sub_module = Days.register_module ~module_name:"core_kernel__date__days__days" in
+  let sub_module = Days.register_module ~module_name:"core__date__days__days" in
   Py_module.set_value modl "days" (Py_module.pyobject sub_module);
-  let sub_module = Option.register_module ~module_name:"core_kernel__date__option__option" in
+  let sub_module = Option.register_module ~module_name:"core__date__option__option" in
   Py_module.set_value modl "option" (Py_module.pyobject sub_module);
   Py_module.set modl "of_time" (of_time ());
   Py_module.set modl "today" (today ());

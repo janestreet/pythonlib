@@ -37,12 +37,39 @@ let set_cls_object_exn t pyobject =
 module Init = struct
   type 'a cls = 'a t
 
+  type 'a fn =
+    | No_keywords of ('a cls -> args:pyobject list -> 'a)
+    | With_keywords of
+        ('a cls
+         -> args:pyobject list
+         -> keywords:(string, pyobject, String.comparator_witness) Map.t
+         -> 'a)
+
   type 'a t =
-    { fn : 'a cls -> args:pyobject list -> 'a
+    { fn : 'a fn
     ; docstring : string option
     }
 
-  let create ?docstring fn = { docstring; fn }
+  let create ?docstring fn = { docstring; fn = No_keywords fn }
+  let create_with_keywords ?docstring fn = { fn = With_keywords fn; docstring }
+
+  let defunc ?docstring defunc =
+    let docstring = Defunc.params_docstring ?docstring defunc in
+    let fn cls ~args ~keywords =
+      let fn = Defunc.apply_ defunc (Array.of_list args) keywords in
+      fn cls
+    in
+    create_with_keywords ~docstring fn
+  ;;
+
+  let no_arg ?docstring fn =
+    let fn cls ~args ~keywords =
+      if not (List.is_empty args) then value_errorf "no argument expected";
+      if not (Map.is_empty keywords) then value_errorf "no keyword argument expected";
+      fn cls
+    in
+    create_with_keywords ?docstring fn
+  ;;
 end
 
 module Method = struct
@@ -183,7 +210,7 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
     let name = "__init__" in
     let fn =
       let docstring = Option.bind init ~f:(fun i -> i.Init.docstring) in
-      Py.Callable.of_function_as_tuple ~name ?docstring (fun tuple ->
+      Py.Callable.of_function_as_tuple_and_dict ~name ?docstring (fun tuple kwargs ->
         try
           let self, args =
             match Py.Tuple.to_list tuple with
@@ -197,7 +224,17 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
             | [ capsule ] when Py.Capsule.check capsule -> capsule
             | _ ->
               (match init with
-               | Some init -> init.fn t ~args |> wrap_capsule t
+               | Some init ->
+                 let v =
+                   match (init.fn : _ Init.fn) with
+                   | No_keywords fn -> fn t ~args
+                   | With_keywords fn ->
+                     let keywords =
+                       Py_module.keywords_of_python kwargs |> Or_error.ok_exn
+                     in
+                     fn t ~args ~keywords
+                 in
+                 wrap_capsule t v
                | None -> Py.none)
           in
           Py.Object.set_attr_string self content_field content;

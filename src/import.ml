@@ -8,6 +8,13 @@ type pyobject = Pytypes.pyobject
 let python_of_pyobject = Fn.id
 let pyobject_of_python = Fn.id
 
+let py_list_to_list_map_safe f pyobject =
+  (* Use [Py.Sequence] rather than [Py.List] so that this works on both
+     tuples and lists. *)
+  List.init (Py.Sequence.length pyobject) ~f:(fun i ->
+    Py.Sequence.get_item pyobject i |> Py.check_not_null |> f)
+;;
+
 module Of_pythonable (Pythonable : sig
     type t [@@deriving python]
   end)
@@ -73,7 +80,12 @@ module One_or_tuple = struct
   ;;
 end
 
-let to_iterable p =
+let to_list p =
+  let list = get_from_builtins "list" in
+  Py.Object.call_function_obj_args list [| p |]
+;;
+
+let iterable_to_list p =
   if Py.List.check p
   then Some p
   else (
@@ -122,7 +134,11 @@ let to_iterable p =
       *)
       let p = Py.Module.get_function_with_keywords p "tolist" [||] [] in
       Some p
-    | _ -> if Py.Iter.check p then Some p else None)
+    | Some "ndarray" ->
+      let p = Py.Module.get_function_with_keywords p "tolist" [||] [] in
+      Some p
+    | Some "range" -> to_list p |> Option.some
+    | _ -> if Py.Iter.check p then to_list p |> Option.some else None)
 ;;
 
 module One_or_tuple_or_list = struct
@@ -134,8 +150,8 @@ module One_or_tuple_or_list = struct
   let t_of_python a_of_python p =
     try One_or_tuple.t_of_python a_of_python p with
     | _ ->
-      (match to_iterable p with
-       | Some l -> Py.List.to_list_map a_of_python l
+      (match iterable_to_list p with
+       | Some l -> py_list_to_list_map_safe a_of_python l
        | None -> failwith "incorrect python type")
   ;;
 end
@@ -186,9 +202,9 @@ module One_or_tuple_or_list_or_error = struct
     match One_or_tuple.t_of_python a_of_python p with
     | v -> List.map v ~f:(fun v -> Ok v)
     | exception _ ->
-      (match to_iterable p with
+      (match iterable_to_list p with
        | Some p ->
-         Py.List.to_list_map
+         py_list_to_list_map_safe
            (fun p ->
               Or_error_python.t_of_python a_of_python p
               |> Or_error.tag ~tag:("trying to parse as " ^ type_name))
