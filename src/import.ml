@@ -8,11 +8,19 @@ type pyobject = Pytypes.pyobject
 let python_of_pyobject = Fn.id
 let pyobject_of_python = Fn.id
 
-let py_list_to_list_map_safe f pyobject =
+let py_list_to_container_map_safe f pyobject ~container_init =
   (* Use [Py.Sequence] rather than [Py.List] so that this works on both
      tuples and lists. *)
-  List.init (Py.Sequence.length pyobject) ~f:(fun i ->
+  container_init (Py.Sequence.length pyobject) ~f:(fun i ->
     Py.Sequence.get_item pyobject i |> Py.check_not_null |> f)
+;;
+
+let py_list_to_list_map_safe f pyobject =
+  py_list_to_container_map_safe f pyobject ~container_init:List.init
+;;
+
+let py_list_to_array_map_safe f pyobject =
+  py_list_to_container_map_safe f pyobject ~container_init:Array.init
 ;;
 
 module Of_pythonable (Pythonable : sig
@@ -43,7 +51,8 @@ let get_class p =
     Option.map (Py.Object.get_attr_string cls "__name__") ~f:Py.String.to_string)
 ;;
 
-let value_errorf fmt = Printf.ksprintf (fun msg -> raise (Py.Err (ValueError, msg))) fmt
+let value_error str = raise (Py.Err (ValueError, str))
+let value_errorf fmt = Printf.ksprintf value_error fmt
 
 let get_from_builtins =
   let cache = Hashtbl.create (module String) in
@@ -213,24 +222,22 @@ module One_or_tuple_or_list_or_error = struct
   ;;
 end
 
-let python_printf fmt =
-  Printf.ksprintf
-    (fun str ->
-       let print = get_from_builtins "print" in
-       Py.Object.call_function_obj_args print [| Py.String.of_string str |]
-       |> (ignore : pyobject -> unit))
-    fmt
+let python_print str =
+  let print = get_from_builtins "print" in
+  Py.Object.call_function_obj_args print [| Py.String.of_string str |]
+  |> (ignore : pyobject -> unit)
 ;;
 
-let python_eprintf fmt =
-  Printf.ksprintf
-    (fun str ->
-       let print = get_from_builtins "print" in
-       let stderr = Py.Module.get (Py.import "sys") "stderr" in
-       Py.Callable.to_function_with_keywords
-         print
-         [| Py.String.of_string str |]
-         [ "file", stderr ]
-       |> (ignore : pyobject -> unit))
-    fmt
+let python_printf fmt = Printf.ksprintf python_print fmt
+
+let python_eprint str =
+  let print = get_from_builtins "print" in
+  let stderr = Py.Module.get (Py.import "sys") "stderr" in
+  Py.Callable.to_function_with_keywords
+    print
+    [| Py.String.of_string str |]
+    [ "file", stderr ]
+  |> (ignore : pyobject -> unit)
 ;;
+
+let python_eprintf fmt = Printf.ksprintf python_eprint fmt

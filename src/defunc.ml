@@ -197,11 +197,21 @@ let apply (type a) (t : (unit -> a) t) args kwargs =
 
 let params_docstring t =
   let sprintf = Printf.sprintf in
+  let escape_trailing_underscore s =
+    (* Sphinx has an unresolved issue with trailing underscores in argument names. They
+       have to be manually escaped.
+
+       https://github.com/sphinx-doc/sphinx/issues/519
+    *)
+    String.chop_suffix s ~suffix:"_"
+    |> Option.value_map ~default:s ~f:(fun s -> s ^ "\\_")
+  in
   let arg_docstring arg ~pos =
+    let arg_name = escape_trailing_underscore arg.Arg.name in
     match arg.Arg.kind with
     | `positional ->
-      [ sprintf "    :param %s: (positional %d) %s" arg.name pos arg.docstring
-      ; sprintf "    :type %s: %s" arg.name arg.of_python.type_name
+      [ sprintf "    :param %s: (positional %d) %s" arg_name pos arg.docstring
+      ; sprintf "    :type %s: %s" arg_name arg.of_python.type_name
       ]
       |> String.concat ~sep:"\n"
     | `keyword default ->
@@ -210,14 +220,15 @@ let params_docstring t =
         | None -> "mandatory keyword"
         | Some _ -> "keyword with default"
       in
-      [ sprintf "    :param %s: (%s) %s" arg.name default arg.docstring
-      ; sprintf "    :type %s: %s" arg.name arg.of_python.type_name
+      [ sprintf "    :param %s: (%s) %s" arg_name default arg.docstring
+      ; sprintf "    :type %s: %s" arg_name arg.of_python.type_name
       ]
       |> String.concat ~sep:"\n"
   in
   let opt_arg_docstring (arg : _ Opt_arg.t) =
-    [ sprintf "    :param %s: (optional keyword) %s" arg.name arg.docstring
-    ; sprintf "    :type %s: %s" arg.name arg.of_python.type_name
+    let arg_name = escape_trailing_underscore arg.Opt_arg.name in
+    [ sprintf "    :param %s: (optional keyword) %s" arg_name arg.docstring
+    ; sprintf "    :type %s: %s" arg_name arg.of_python.type_name
     ]
     |> String.concat ~sep:"\n"
   in
@@ -417,6 +428,14 @@ module Param = struct
       | None ->
         Printf.failwithf "not a list/tuple/iter (%s)" (Py.Type.get p |> Py.Type.name) ()
       | Some l -> py_list_to_list_map_safe o.conv l)
+  ;;
+
+  let array_or_iter (o : _ Of_python.t) =
+    Of_python.create ~type_name:(Printf.sprintf "[%s]" o.type_name) ~conv:(fun p ->
+      match iterable_to_list p with
+      | None ->
+        Printf.failwithf "not a list/tuple/iter (%s)" (Py.Type.get p |> Py.Type.name) ()
+      | Some l -> py_list_to_array_map_safe o.conv l)
   ;;
 
   let one_or_tuple_or_list (o : _ Of_python.t) =

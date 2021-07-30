@@ -49,6 +49,15 @@ let param_base____formatter__t =
   Defunc.Of_python.create ~type_name:"Base__.Formatter.t" ~conv:base____formatter__t_of_python
 ;;
 
+let python_of_sexplib0__sexp__t, sexplib0__sexp__t_of_python =
+  let capsule = lazy (Py.Capsule.make "Sexplib0.Sexp.t") in
+  (fun (x : Sexplib0.Sexp.t) -> (Lazy.force capsule |> fst) x),
+  (fun x -> (Lazy.force capsule |> snd) x)
+;;
+let param_sexplib0__sexp__t =
+  Defunc.Of_python.create ~type_name:"Sexplib0.Sexp.t" ~conv:sexplib0__sexp__t_of_python
+;;
+
 let python_of_core____time_float__zone__t, core____time_float__zone__t_of_python =
   let capsule = lazy (Py.Capsule.make "Core__.Time_float.Zone.t") in
   (fun (x : Core__.Time_float.Zone.t) -> (Lazy.force capsule |> fst) x),
@@ -56,15 +65,6 @@ let python_of_core____time_float__zone__t, core____time_float__zone__t_of_python
 ;;
 let param_core____time_float__zone__t =
   Defunc.Of_python.create ~type_name:"Core__.Time_float.Zone.t" ~conv:core____time_float__zone__t_of_python
-;;
-
-let python_of_ppx_sexp_conv_lib__sexp__t, ppx_sexp_conv_lib__sexp__t_of_python =
-  let capsule = lazy (Py.Capsule.make "Ppx_sexp_conv_lib.Sexp.t") in
-  (fun (x : Ppx_sexp_conv_lib.Sexp.t) -> (Lazy.force capsule |> fst) x),
-  (fun x -> (Lazy.force capsule |> snd) x)
-;;
-let param_ppx_sexp_conv_lib__sexp__t =
-  Defunc.Of_python.create ~type_name:"Ppx_sexp_conv_lib.Sexp.t" ~conv:ppx_sexp_conv_lib__sexp__t_of_python
 ;;
 
 let python_of_core____time_float__t, core____time_float__t_of_python =

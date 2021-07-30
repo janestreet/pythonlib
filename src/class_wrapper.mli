@@ -62,6 +62,7 @@ val make
   -> ?to_string:('a t -> 'a -> string)
   -> ?eq:('a t -> 'a -> 'a -> bool)
   -> ?init:'a Init.t
+  -> ?fields:(string * pyobject) list
   -> string
   -> methods:'a Method.t list
   -> 'a t

@@ -67,6 +67,7 @@ module Param : sig
 
   val option : 'a Of_python.t -> 'a option Of_python.t
   val list : 'a Of_python.t -> 'a list Of_python.t
+  val array_or_iter : 'a Of_python.t -> 'a array Of_python.t
   val list_or_iter : 'a Of_python.t -> 'a list Of_python.t
   val one_or_tuple_or_list : 'a Of_python.t -> 'a list Of_python.t
 

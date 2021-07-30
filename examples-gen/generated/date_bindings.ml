@@ -672,14 +672,14 @@ module Option = struct
     |> python_of_ppx_hash_lib__std__hash__hash_value
   ;;
 
-  let sexp_of_t () = (* Core__Date.Option.t -> Ppx_sexp_conv_lib.Sexp.t *)
+  let sexp_of_t () = (* Core__Date.Option.t -> Sexplib0.Sexp.t *)
     let%map_open
       positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
     Core__Date.Option.sexp_of_t
       positional_1
-    |> python_of_ppx_sexp_conv_lib__sexp__t
+    |> python_of_sexplib0__sexp__t
   ;;
 
   let none () = (* Core__Date.Option.t *)

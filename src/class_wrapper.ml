@@ -144,7 +144,7 @@ let protect ~f =
     raise (Py.Err (ValueError, msg))
 ;;
 
-let make ?to_string_repr ?to_string ?eq ?init name ~methods =
+let make ?to_string_repr ?to_string ?eq ?init ?(fields = []) name ~methods =
   let id = Id.create () in
   let t =
     let wrap, unwrap = Py.Capsule.make (Printf.sprintf "%s-%s" name (Id.to_string id)) in
@@ -248,7 +248,15 @@ let make ?to_string_repr ?to_string ?eq ?init name ~methods =
     name, fn
   in
   let cls_object =
-    Py.Class.init name ~fields:[ content_field, Py.none ] ~methods:(init :: methods)
+    if
+      List.exists fields ~f:(fun (field_name, _) -> String.equal field_name content_field)
+    then
+      value_errorf
+        "'%s' is not an acceptable field name because it is reserved for internal use by \
+         OCaml's class_wrapper"
+        content_field;
+    let fields = (content_field, Py.none) :: fields in
+    Py.Class.init name ~fields ~methods:(init :: methods)
   in
   set_cls_object_exn t cls_object;
   t
