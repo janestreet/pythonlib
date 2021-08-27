@@ -44,18 +44,93 @@ let keywords_of_python pyobject =
     Or_error.errorf "expected dict for keywords, got %s" (Py.Type.name otherwise)
 ;;
 
+(* Maybe using a trie rather than iterating through a list of prefixes would be
+   more efficient? *)
+let excluded_prefixes =
+  [ "Async_kernel__Deferred"
+  ; "Async_kernel__Job_queue.run_job"
+  ; "Async_kernel__Monitor.Exported_for_scheduler."
+  ; "Base__Error.raise"
+  ; "Base__Exn.protect"
+  ; "Base__Exn.raise_with_original"
+  ; "Base__Exn.reraise"
+  ; "Base__Or_error.ok_exn"
+  ; "Base__Result.ok_exn"
+  ; "Python_lib__Defunc.apply"
+  ; "Python_lib__Import.value_error"
+  ; "Python_lib__Py_module.set"
+  ; "Python_lib__Py_module.wrap_ocaml_errors"
+  ; "Stdlib.failwith"
+  ]
+;;
+
+let make_traceback backtrace =
+  (* This returns the most recent function call at the beginning of the array. *)
+  Caml.Printexc.backtrace_slots backtrace
+  |> Option.value ~default:[||]
+  |> Array.to_list
+  |> List.filter_map ~f:(fun slot ->
+    let function_name =
+      Caml.Printexc.Slot.name slot |> Option.value ~default:"unknown"
+    in
+    if List.exists excluded_prefixes ~f:(fun prefix ->
+      String.is_prefix function_name ~prefix)
+    then None
+    else (
+      let filename =
+        Caml.Printexc.Slot.location slot
+        |> Option.value_map
+             ~f:(fun loc -> loc.Caml.Printexc.filename)
+             ~default:"unknown"
+      in
+      let line_number =
+        Caml.Printexc.Slot.location slot
+        |> Option.value_map ~f:(fun loc -> loc.Caml.Printexc.line_number) ~default:42
+      in
+      let function_name = Printf.sprintf "%s:%d" function_name line_number in
+      Some { Py.Traceback.filename; function_name; line_number }))
+;;
+
+let raise_py_err_with_backtrace ?(unwrap_more = fun _ -> None) ?backtrace exn =
+  let rec loop acc_traceback = function
+    | Exn.Reraised (reraised, exn) ->
+      let frame =
+        { Py.Traceback.filename = "exn.ml"
+        ; function_name = Printf.sprintf "reraise<%s>" reraised
+        ; line_number = 0
+        }
+      in
+      loop ([ frame ] :: acc_traceback) exn
+    | exn ->
+      (match unwrap_more exn with
+       | None -> List.concat (List.rev acc_traceback), exn
+       | Some (backtraces, exn) ->
+         loop (List.map ~f:make_traceback backtraces @ acc_traceback) exn)
+  in
+  let additional_traceback, exn = loop [] exn in
+  (* The [additional_traceback] information is from function calls less recent than the
+     ones from [Backtrace.Exn.most_recent] *)
+  let traceback =
+    Option.value_map backtrace ~f:make_traceback ~default:[] @ additional_traceback
+  in
+  let py_err, msg, original_traceback =
+    match exn with
+    | Py.Err (py_err, msg) -> py_err, msg, []
+    | Py.Err_with_traceback (py_err, msg, traceback) -> py_err, msg, traceback
+    | Failure s -> ValueError, s, []
+    | exn -> ValueError, Exn.to_string_mach exn, []
+  in
+  raise (Py.Err_with_traceback (py_err, msg, original_traceback @ traceback))
+;;
+
 let wrap_ocaml_errors f =
   try f () with
-  | Py.Err _ as pyerr -> raise pyerr
-  | exn ->
-    let backtrace = Backtrace.Exn.most_recent () in
-    let msg =
-      Printf.sprintf
-        "ocaml error %s\n%s"
-        (Exn.to_string_mach exn)
-        (Backtrace.to_string backtrace)
-    in
-    raise (Py.Err (ValueError, msg))
+  | Py.(Err _ | Err_with_traceback _) as pyerr ->
+    (* We do not include the latest backtrace information here as the code raising these
+       exceptions is assumed to have put enough context in it and the backtrace leading
+       to these is often noisy. *)
+    raise pyerr
+  | exn -> raise_py_err_with_backtrace exn ~backtrace:(Backtrace.Exn.most_recent ())
 ;;
 
 let set_function t ?docstring name fn =

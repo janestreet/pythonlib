@@ -278,10 +278,9 @@ let params_docstring ?docstring t =
   *)
   let docstring =
     Option.map docstring ~f:(fun docstring ->
-      if
-        String.contains docstring '\n'
-        || String.is_prefix docstring ~prefix:" "
-        || String.is_empty docstring
+      if String.contains docstring '\n'
+      || String.is_prefix docstring ~prefix:" "
+      || String.is_empty docstring
       then docstring
       else "    " ^ docstring)
   in

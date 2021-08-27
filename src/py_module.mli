@@ -73,6 +73,18 @@ val keywords_of_python
 
 val wrap_ocaml_errors : (unit -> 'a) -> 'a
 
+(** Raise a Python exception that will include the OCaml backtrace information as part
+    of the Python exception traceback.
+    [unwrap_more] can be specified to extract nested exceptions and provide additional
+    backtraces if relevant. Note that [unwrap_more exn] returning [exn] would result
+    in an infinite loop.
+*)
+val raise_py_err_with_backtrace
+  :  ?unwrap_more:(exn -> (Caml.Printexc.raw_backtrace list * exn) option)
+  -> ?backtrace:Caml.Printexc.raw_backtrace
+  -> exn
+  -> 'a
+
 module Raw : sig
   val set : pyobject -> ?docstring:string -> string -> (unit -> pyobject) Defunc.t -> unit
 end

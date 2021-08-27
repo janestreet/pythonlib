@@ -18,7 +18,7 @@ depends: [
   "stdio"
   "typerep"
   "dune"       {>= "2.0.0"}
-  "pyml"       {>= "20200115"}
+  "pyml"       {>= "20200115-traceback"}
 ]
 synopsis: "A library to help writing wrappers around ocaml code for python"
 description: "
