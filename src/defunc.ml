@@ -90,6 +90,8 @@ end
 let apply_ (type a) (t : a t) args kwargs =
   let try_of_python v ~of_python ~name =
     try of_python.Of_python.conv v with
+    | Py.Err_with_traceback (_, msg, _) | Py.Err (_, msg) ->
+      value_errorf "error processing arg %s (%s): %s" name of_python.type_name msg
     | e ->
       value_errorf
         "error processing arg %s (%s): %s"
@@ -447,6 +449,13 @@ module Param = struct
     Of_python.create
       ~type_name:(Printf.sprintf "[%s] (relaxed)" o.type_name)
       ~conv:(One_or_tuple_or_list_or_error.t_of_python o.conv ~type_name:o.type_name)
+  ;;
+
+  let with_broadcast (o : _ Of_python.t) ~arg_name =
+    Of_python.create
+      ~type_name:(Printf.sprintf "b[%s]" o.type_name)
+      ~conv:(fun pyobject ->
+        Broadcast.one { name = arg_name; pyobject; of_python = o.conv })
   ;;
 
   let dict ~(key : _ Of_python.t) ~(value : _ Of_python.t) =

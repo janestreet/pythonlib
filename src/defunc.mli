@@ -74,6 +74,7 @@ module Param : sig
   (* [one_or_tuple_or_list_relaxed] can be used to allow individual items in a list to
      be invalid. *)
   val one_or_tuple_or_list_relaxed : 'a Of_python.t -> 'a Or_error.t list Of_python.t
+  val with_broadcast : 'a Of_python.t -> arg_name:string -> 'a Broadcast.t Of_python.t
   val dict : key:'a Of_python.t -> value:'b Of_python.t -> ('a * 'b) list Of_python.t
   val star_args : docstring:string -> pyobject list t
 

@@ -1,4 +1,5 @@
 include Import
+module Broadcast = Broadcast
 module Class_wrapper = Class_wrapper
 module Defunc = Defunc
 module Gen = Gen

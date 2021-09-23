@@ -241,3 +241,15 @@ let python_eprint str =
 ;;
 
 let python_eprintf fmt = Printf.ksprintf python_eprint fmt
+let builtins = lazy (Py.Module.builtins ())
+let pandas = lazy (Option.try_with (fun () -> Py.Import.import_module "pandas"))
+let numpy = lazy (Option.try_with (fun () -> Py.Import.import_module "numpy"))
+let datetime = lazy (Option.try_with (fun () -> Py.Import.import_module "datetime"))
+
+let pd_series =
+  lazy (Lazy.force pandas |> Option.map ~f:(fun pd -> Py.Module.get pd "Series"))
+;;
+
+let pd_dataframe =
+  lazy (Lazy.force pandas |> Option.map ~f:(fun pd -> Py.Module.get pd "DataFrame"))
+;;
