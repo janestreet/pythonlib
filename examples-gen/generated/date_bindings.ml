@@ -36,26 +36,14 @@ let sexp_of_t () = (* Core__Date.t -> Sexplib0__.Sexp.t *)
   |> python_of_sexplib0____sexp__t
 ;;
 
-let hash_fold_t () = (* Ppx_hash_lib.Std.Hash.state -> Core__Date.t -> Ppx_hash_lib.Std.Hash.state *)
-  let%map_open
-    positional_1 = positional "positional_1" param_ppx_hash_lib__std__hash__state ~docstring:"Ppx_hash_lib.Std.Hash.state" and
-    positional_2 = positional "positional_2" param_core__date__t ~docstring:"Core__Date.t"
-  in
-  fun () ->
-  Core__Date.hash_fold_t
-    positional_1
-    positional_2
-  |> python_of_ppx_hash_lib__std__hash__state
-;;
-
-let hash () = (* Core__Date.t -> Ppx_hash_lib.Std.Hash.hash_value *)
+let hash () = (* Core__Date.t -> Base__Ppx_hash_lib.Std.Hash.hash_value *)
   let%map_open
     positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
   in
   fun () ->
   Core__Date.hash
     positional_1
-  |> python_of_ppx_hash_lib__std__hash__hash_value
+  |> python_of_base__ppx_hash_lib__std__hash__hash_value
 ;;
 
 let of_string () = (* string -> Core__Date.t *)
@@ -650,26 +638,14 @@ module Days = struct
     modl
 end;;
 module Option = struct
-  let hash_fold_t () = (* Ppx_hash_lib.Std.Hash.state -> Core__Date.Option.t -> Ppx_hash_lib.Std.Hash.state *)
-    let%map_open
-      positional_1 = positional "positional_1" param_ppx_hash_lib__std__hash__state ~docstring:"Ppx_hash_lib.Std.Hash.state" and
-      positional_2 = positional "positional_2" param_core__date__option__t ~docstring:"Core__Date.Option.t"
-    in
-    fun () ->
-    Core__Date.Option.hash_fold_t
-      positional_1
-      positional_2
-    |> python_of_ppx_hash_lib__std__hash__state
-  ;;
-
-  let hash () = (* Core__Date.Option.t -> Ppx_hash_lib.Std.Hash.hash_value *)
+  let hash () = (* Core__Date.Option.t -> Base__Ppx_hash_lib.Std.Hash.hash_value *)
     let%map_open
       positional_1 = positional "positional_1" param_core__date__option__t ~docstring:"Core__Date.Option.t"
     in
     fun () ->
     Core__Date.Option.hash
       positional_1
-    |> python_of_ppx_hash_lib__std__hash__hash_value
+    |> python_of_base__ppx_hash_lib__std__hash__hash_value
   ;;
 
   let sexp_of_t () = (* Core__Date.Option.t -> Sexplib0.Sexp.t *)
@@ -969,7 +945,6 @@ module Option = struct
 
   let register_module ~module_name =
     let modl = Py_module.create module_name in
-    Py_module.set modl "hash_fold_t" (hash_fold_t ());
     Py_module.set modl "hash" (hash ());
     Py_module.set modl "sexp_of_t" (sexp_of_t ());
     Py_module.set_no_arg modl "none" none;
@@ -1026,7 +1001,6 @@ let register_module ~module_name =
   Py_module.set_no_arg modl "bin_shape_t" bin_shape_t;
   Py_module.set modl "t_of_sexp" (t_of_sexp ());
   Py_module.set modl "sexp_of_t" (sexp_of_t ());
-  Py_module.set modl "hash_fold_t" (hash_fold_t ());
   Py_module.set modl "hash" (hash ());
   Py_module.set modl "of_string" (of_string ());
   Py_module.set modl "to_string" (to_string ());

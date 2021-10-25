@@ -455,7 +455,7 @@ module Param = struct
     Of_python.create
       ~type_name:(Printf.sprintf "b[%s]" o.type_name)
       ~conv:(fun pyobject ->
-        Broadcast.one { name = arg_name; pyobject; of_python = o.conv })
+        { Broadcast.Arg.name = arg_name; pyobject; of_python = o.conv })
   ;;
 
   let dict ~(key : _ Of_python.t) ~(value : _ Of_python.t) =
