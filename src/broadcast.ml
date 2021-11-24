@@ -49,6 +49,8 @@ let one { Arg.name = _; pyobject; of_python } =
     | Some _ | None -> Single_value (of_python pyobject))
 ;;
 
+let many vs = List vs
+
 let merge (t2, name) t1 =
   let zip_exn vs1 vs2 =
     let n1 = List.length vs1 in

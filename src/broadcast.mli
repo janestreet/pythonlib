@@ -16,6 +16,7 @@ end
 type 'a t
 
 val one : 'a Arg.t -> 'a t
+val many : 'a list -> 'a t
 val map : 'a t -> f:('a -> 'b) -> 'b t
 val merge : 'a t * string -> 'b t -> ('b * 'a) t
 val zip2 : 'a Arg.t -> 'b Arg.t -> ('a * 'b) t
