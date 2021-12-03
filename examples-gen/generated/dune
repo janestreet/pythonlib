@@ -1,6 +1,6 @@
 (executables (names ocaml) (preprocess (pps ppx_let ppx_python))
  (modes (byte shared_object)) (flags :standard -linkall)
- (libraries base core_kernel.core pyml python_lib))
+ (libraries base core pyml python_lib))
 
 (rule (targets date_bindings.ml gen_types.ml)
  (deps (:first_dep ../python_gen.exe)
