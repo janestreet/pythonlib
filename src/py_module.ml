@@ -115,6 +115,7 @@ let raise_py_err_with_backtrace ?(unwrap_more = fun _ -> None) ?backtrace exn =
   in
   let py_err, msg, original_traceback =
     match exn with
+    | Py.E _ -> raise exn
     | Py.Err (py_err, msg) -> py_err, msg, []
     | Py.Err_with_traceback (py_err, msg, traceback) -> py_err, msg, traceback
     | Failure s -> ValueError, s, []
@@ -125,7 +126,7 @@ let raise_py_err_with_backtrace ?(unwrap_more = fun _ -> None) ?backtrace exn =
 
 let wrap_ocaml_errors f =
   try f () with
-  | Py.(Err _ | Err_with_traceback _) as pyerr ->
+  | Py.(E _ | Err _ | Err_with_traceback _) as pyerr ->
     (* We do not include the latest backtrace information here as the code raising these
        exceptions is assumed to have put enough context in it and the backtrace leading
        to these is often noisy. *)

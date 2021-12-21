@@ -212,8 +212,8 @@ let params_docstring t =
     let arg_name = escape_trailing_underscore arg.Arg.name in
     match arg.Arg.kind with
     | `positional ->
-      [ sprintf "    :param %s: (positional %d) %s" arg_name pos arg.docstring
-      ; sprintf "    :type %s: %s" arg_name arg.of_python.type_name
+      [ sprintf ":param %s: (positional %d) %s" arg_name pos arg.docstring
+      ; sprintf ":type %s: %s" arg_name arg.of_python.type_name
       ]
       |> String.concat ~sep:"\n"
     | `keyword default ->
@@ -222,20 +222,20 @@ let params_docstring t =
         | None -> "mandatory keyword"
         | Some _ -> "keyword with default"
       in
-      [ sprintf "    :param %s: (%s) %s" arg_name default arg.docstring
-      ; sprintf "    :type %s: %s" arg_name arg.of_python.type_name
+      [ sprintf ":param %s: (%s) %s" arg_name default arg.docstring
+      ; sprintf ":type %s: %s" arg_name arg.of_python.type_name
       ]
       |> String.concat ~sep:"\n"
   in
   let opt_arg_docstring (arg : _ Opt_arg.t) =
     let arg_name = escape_trailing_underscore arg.Opt_arg.name in
-    [ sprintf "    :param %s: (optional keyword) %s" arg_name arg.docstring
-    ; sprintf "    :type %s: %s" arg_name arg.of_python.type_name
+    [ sprintf ":param %s: (optional keyword) %s" arg_name arg.docstring
+    ; sprintf ":type %s: %s" arg_name arg.of_python.type_name
     ]
     |> String.concat ~sep:"\n"
   in
-  let star_args_docstring doc = sprintf "    :param other args: %s" doc in
-  let star_kwargs_docstring doc = sprintf "    :param other keyword args: %s" doc in
+  let star_args_docstring doc = sprintf ":param other args: %s" doc in
+  let star_kwargs_docstring doc = sprintf ":param other keyword args: %s" doc in
   let rec loop : type a. a t -> pos:int -> _ list * int =
     fun t ~pos ->
       match t with
@@ -275,17 +275,6 @@ let params_docstring t =
 ;;
 
 let params_docstring ?docstring t =
-  (* In order to ensure better formatting when using sphinx to generate some html
-     documentation, we ensure that single line docstrings start with four spaces.
-  *)
-  let docstring =
-    Option.map docstring ~f:(fun docstring ->
-      if String.contains docstring '\n'
-      || String.is_prefix docstring ~prefix:" "
-      || String.is_empty docstring
-      then docstring
-      else "    " ^ docstring)
-  in
   [ params_docstring t; docstring ]
   |> List.filter_opt
   |> String.concat ~sep:"\n\n"
@@ -454,8 +443,19 @@ module Param = struct
   let with_broadcast (o : _ Of_python.t) ~arg_name =
     Of_python.create
       ~type_name:(Printf.sprintf "b[%s]" o.type_name)
-      ~conv:(fun pyobject ->
-        { Broadcast.Arg.name = arg_name; pyobject; of_python = o.conv })
+      ~conv:(fun pyobject -> Broadcast.create pyobject o.conv ~arg_name)
+  ;;
+
+  let positional_broadcast arg_name of_python =
+    positional arg_name (with_broadcast of_python ~arg_name)
+  ;;
+
+  let keyword_broadcast ?default arg_name of_python =
+    keyword ?default arg_name (with_broadcast of_python ~arg_name)
+  ;;
+
+  let keyword_opt_broadcast arg_name of_python =
+    keyword_opt arg_name (with_broadcast of_python ~arg_name)
   ;;
 
   let dict ~(key : _ Of_python.t) ~(value : _ Of_python.t) =
