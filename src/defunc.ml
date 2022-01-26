@@ -282,6 +282,18 @@ let params_docstring ?docstring t =
 ;;
 
 module Param = struct
+  let choice (o1 : _ Of_python.t) (o2 : _ Of_python.t) =
+    Of_python.create
+      ~type_name:(Printf.sprintf "%s | %s" o1.type_name o2.type_name)
+      ~conv:(fun pyobject ->
+        try Either.First (o1.conv pyobject) with
+        | _ -> Second (o2.conv pyobject))
+  ;;
+
+  let map (o : _ Of_python.t) ~f =
+    Of_python.create ~type_name:o.type_name ~conv:(fun pyobject -> o.conv pyobject |> f)
+  ;;
+
   let positional name of_python ~docstring =
     check_valid_arg_name name;
     Arg { name; of_python; docstring; kind = `positional }
@@ -301,6 +313,21 @@ module Param = struct
   let float = Of_python.create ~type_name:"float" ~conv:float_of_python
   let bool = Of_python.create ~type_name:"bool" ~conv:bool_of_python
   let string = Of_python.create ~type_name:"string" ~conv:string_of_python
+
+  let path =
+    Of_python.create ~type_name:"path" ~conv:(fun pyobject ->
+      try string_of_python pyobject with
+      | _ ->
+        if Py.Object.is_instance pyobject (Lazy.force path_cls)
+        then (
+          let str = get_from_builtins "str" in
+          Py.Object.call_function_obj_args str [| pyobject |] |> string_of_python)
+        else
+          value_errorf
+            "expected a str or instance of Path, got %s"
+            (Py.Type.get pyobject |> Py.Type.name)
+            ())
+  ;;
 
   (* Rather than using typerep, it would be nice to have a [function] combinator
      and let users write e.g [function (pair int int) int] for addition.
@@ -334,7 +361,7 @@ module Param = struct
 
   let pair (o1 : _ Of_python.t) (o2 : _ Of_python.t) =
     Of_python.create
-      ~type_name:(Printf.sprintf "(%s, %s)" o1.type_name o2.type_name)
+      ~type_name:(Printf.sprintf "Tuple[%s, %s]" o1.type_name o2.type_name)
       ~conv:(fun pyobject ->
         check_tuple_len pyobject ~expected_length:2;
         let p1, p2 = Py.Tuple.to_tuple2 pyobject in
@@ -343,7 +370,8 @@ module Param = struct
 
   let triple (o1 : _ Of_python.t) (o2 : _ Of_python.t) (o3 : _ Of_python.t) =
     Of_python.create
-      ~type_name:(Printf.sprintf "(%s, %s, %s)" o1.type_name o2.type_name o3.type_name)
+      ~type_name:
+        (Printf.sprintf "Tuple[%s, %s, %s]" o1.type_name o2.type_name o3.type_name)
       ~conv:(fun pyobject ->
         check_tuple_len pyobject ~expected_length:3;
         let p1, p2, p3 = Py.Tuple.to_tuple3 pyobject in
@@ -359,7 +387,7 @@ module Param = struct
     Of_python.create
       ~type_name:
         (Printf.sprintf
-           "(%s, %s, %s, %s)"
+           "Tuple[%s, %s, %s, %s]"
            o1.type_name
            o2.type_name
            o3.type_name
@@ -380,7 +408,7 @@ module Param = struct
     Of_python.create
       ~type_name:
         (Printf.sprintf
-           "(%s, %s, %s, %s, %s)"
+           "Tuple[%s, %s, %s, %s, %s]"
            o1.type_name
            o2.type_name
            o3.type_name
@@ -394,7 +422,7 @@ module Param = struct
 
   let option (o : _ Of_python.t) =
     Of_python.create
-      ~type_name:(Printf.sprintf "(%s option)" o.type_name)
+      ~type_name:(Printf.sprintf "Optional[%s]" o.type_name)
       ~conv:(fun python_value ->
         if Py.is_null python_value || Py.is_none python_value
         then None
@@ -403,7 +431,7 @@ module Param = struct
 
   let list (o : _ Of_python.t) =
     Of_python.create
-      ~type_name:(Printf.sprintf "[%s]" o.type_name)
+      ~type_name:(Printf.sprintf "List[%s]" o.type_name)
       ~conv:(fun python_value ->
         (match Py.Type.get python_value with
          | List | Tuple -> ()
@@ -413,7 +441,7 @@ module Param = struct
   ;;
 
   let list_or_iter (o : _ Of_python.t) =
-    Of_python.create ~type_name:(Printf.sprintf "[%s]" o.type_name) ~conv:(fun p ->
+    Of_python.create ~type_name:(Printf.sprintf "List[%s]" o.type_name) ~conv:(fun p ->
       match iterable_to_list p with
       | None ->
         Printf.failwithf "not a list/tuple/iter (%s)" (Py.Type.get p |> Py.Type.name) ()
@@ -421,7 +449,7 @@ module Param = struct
   ;;
 
   let array_or_iter (o : _ Of_python.t) =
-    Of_python.create ~type_name:(Printf.sprintf "[%s]" o.type_name) ~conv:(fun p ->
+    Of_python.create ~type_name:(Printf.sprintf "List[%s]" o.type_name) ~conv:(fun p ->
       match iterable_to_list p with
       | None ->
         Printf.failwithf "not a list/tuple/iter (%s)" (Py.Type.get p |> Py.Type.name) ()
@@ -430,19 +458,19 @@ module Param = struct
 
   let one_or_tuple_or_list (o : _ Of_python.t) =
     Of_python.create
-      ~type_name:(Printf.sprintf "[%s]" o.type_name)
+      ~type_name:(Printf.sprintf "ListOrSingleElt[%s]" o.type_name)
       ~conv:(One_or_tuple_or_list.t_of_python o.conv)
   ;;
 
   let one_or_tuple_or_list_relaxed (o : _ Of_python.t) =
     Of_python.create
-      ~type_name:(Printf.sprintf "[%s] (relaxed)" o.type_name)
+      ~type_name:(Printf.sprintf "ListOrSingleElt[%s] (relaxed)" o.type_name)
       ~conv:(One_or_tuple_or_list_or_error.t_of_python o.conv ~type_name:o.type_name)
   ;;
 
   let with_broadcast (o : _ Of_python.t) ~arg_name =
     Of_python.create
-      ~type_name:(Printf.sprintf "b[%s]" o.type_name)
+      ~type_name:(Printf.sprintf "ListWithBroadcast[%s]" o.type_name)
       ~conv:(fun pyobject -> Broadcast.create pyobject o.conv ~arg_name)
   ;;
 
@@ -460,7 +488,7 @@ module Param = struct
 
   let dict ~(key : _ Of_python.t) ~(value : _ Of_python.t) =
     Of_python.create
-      ~type_name:(Printf.sprintf "[%s: %s]" key.type_name value.type_name)
+      ~type_name:(Printf.sprintf "Dict[%s, %s]" key.type_name value.type_name)
       ~conv:(Py.Dict.to_bindings_map key.conv value.conv)
   ;;
 

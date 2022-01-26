@@ -33,6 +33,10 @@ val apply
   -> 'a
 
 module Param : sig
+  (** [choice x y] first attempts conversion using x.conv. if that fails, it attempts y.conv *)
+  val choice : 'a Of_python.t -> 'b Of_python.t -> ('a, 'b) Either.t Of_python.t
+
+  val map : 'a Of_python.t -> f:('a -> 'b) -> 'b Of_python.t
   val positional : string -> 'a Of_python.t -> docstring:string -> 'a t
   val keyword : ?default:'a -> string -> 'a Of_python.t -> docstring:string -> 'a t
   val keyword_opt : string -> 'a Of_python.t -> docstring:string -> 'a option t
@@ -40,6 +44,7 @@ module Param : sig
   val float : float Of_python.t
   val bool : bool Of_python.t
   val string : string Of_python.t
+  val path : string Of_python.t
   val typerep : 'a Typerep_lib.Std.Typerep.t -> 'a Of_python.t
   val pyobject : pyobject Of_python.t
   val pair : 'a Of_python.t -> 'b Of_python.t -> ('a * 'b) Of_python.t
