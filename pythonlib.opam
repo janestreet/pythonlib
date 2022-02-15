@@ -1,4 +1,5 @@
 opam-version: "2.0"
+version: "v0.15.0"
 maintainer: "Jane Street developers"
 authors: ["Jane Street Group, LLC"]
 homepage: "https://github.com/janestreet/pythonlib"
@@ -10,13 +11,13 @@ build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
-  "ocaml" {>= "4.11.0" & < "4.13.0"}
-  "base"
-  "ppx_expect"
-  "ppx_let"
-  "ppx_python"
-  "stdio"
-  "typerep"
+  "ocaml"      {>= "4.11.0" & < "4.13.0"}
+  "base"       {>= "v0.15" & < "v0.16"}
+  "ppx_expect" {>= "v0.15" & < "v0.16"}
+  "ppx_let"    {>= "v0.15" & < "v0.16"}
+  "ppx_python" {>= "v0.15" & < "v0.16"}
+  "stdio"      {>= "v0.15" & < "v0.16"}
+  "typerep"    {>= "v0.15" & < "v0.16"}
   "dune"       {>= "2.0.0"}
   "pyml"       {>= "20200115"}
 ]
