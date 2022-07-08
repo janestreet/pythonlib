@@ -76,11 +76,10 @@ module Method = struct
   type 'a cls = 'a t
 
   type 'a fn =
-    | No_keywords of ('a cls -> self:'a * pyobject -> args:pyobject list -> pyobject)
-    | No_keywords_raw of ('a cls -> self:pyobject -> args:pyobject list -> pyobject)
+    | No_keywords of (self:'a * pyobject -> args:pyobject list -> pyobject)
+    | No_keywords_raw of (self:pyobject -> args:pyobject list -> pyobject)
     | With_keywords of
-        ('a cls
-         -> self:'a * pyobject
+        (self:'a * pyobject
          -> args:pyobject list
          -> keywords:(string, pyobject, String.comparator_witness) Map.t
          -> pyobject)
@@ -97,18 +96,18 @@ module Method = struct
 
   let defunc ?docstring name defunc =
     let docstring = Defunc.params_docstring ?docstring defunc in
-    let fn cls ~self ~args ~keywords =
+    let fn ~self ~args ~keywords =
       let fn = Defunc.apply_ defunc (Array.of_list args) keywords in
-      fn cls ~self
+      fn ~self
     in
     create_with_keywords ~docstring name fn
   ;;
 
   let no_arg ?docstring name fn =
-    let fn cls ~self ~args ~keywords =
+    let fn ~self ~args ~keywords =
       if not (List.is_empty args) then value_errorf "no argument expected";
       if not (Map.is_empty keywords) then value_errorf "no keyword argument expected";
-      fn cls ~self
+      fn ~self
     in
     create_with_keywords ?docstring name fn
   ;;
@@ -152,16 +151,16 @@ let make ?to_string_repr ?to_string ?eq ?init ?(fields = []) name ~methods =
   in
   let methods =
     let to_string =
-      Option.map to_string ~f:(fun fn t ~self ~args:_ ->
+      Option.map to_string ~f:(fun fn ~self ~args:_ ->
         fn t (fst self) |> Py.String.of_string)
     in
     let to_string_repr =
-      Option.map to_string_repr ~f:(fun fn t ~self ~args:_ ->
+      Option.map to_string_repr ~f:(fun fn ~self ~args:_ ->
         fn t (fst self) |> Py.String.of_string)
     in
     let to_string_repr = Option.first_some to_string_repr to_string in
     let eq =
-      Option.map eq ~f:(fun fn t ~self ~args ->
+      Option.map eq ~f:(fun fn ~self ~args ->
         let rhs =
           match args with
           | [] -> failwith "eq with no argument"
@@ -173,7 +172,7 @@ let make ?to_string_repr ?to_string ?eq ?init ?(fields = []) name ~methods =
     List.filter_map
       [ "__str__", to_string; "__repr__", to_string_repr; "__eq__", eq ]
       ~f:(fun (name, fn) -> Option.map fn ~f:(fun fn -> Method.create name fn))
-    @ methods
+    @ methods t
   in
   let methods =
     List.map methods ~f:(fun { Method.name; fn; docstring } ->
@@ -189,12 +188,12 @@ let make ?to_string_repr ?to_string ?eq ?init ?(fields = []) name ~methods =
           Py.Callable.of_function ~name ?docstring (fun args ->
             protect ~f:(fun () ->
               let self, args = self_and_args args in
-              fn t ~self:(unwrap_exn t self, self) ~args))
+              fn ~self:(unwrap_exn t self, self) ~args))
         | No_keywords_raw fn ->
           Py.Callable.of_function ~name ?docstring (fun args ->
             protect ~f:(fun () ->
               let self, args = self_and_args args in
-              fn t ~self ~args))
+              fn ~self ~args))
         | With_keywords fn ->
           Py.Callable.of_function_with_keywords ~name ?docstring (fun args keywords ->
             protect ~f:(fun () ->
@@ -202,7 +201,7 @@ let make ?to_string_repr ?to_string ?eq ?init ?(fields = []) name ~methods =
               let keywords =
                 Py_module.keywords_of_python keywords |> Or_error.ok_exn
               in
-              fn t ~self:(unwrap_exn t self, self) ~args ~keywords))
+              fn ~self:(unwrap_exn t self, self) ~args ~keywords))
       in
       name, fn)
   in

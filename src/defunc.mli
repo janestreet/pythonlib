@@ -43,10 +43,18 @@ module Param : sig
   val int : int Of_python.t
   val float : float Of_python.t
   val bool : bool Of_python.t
+  val char : char Of_python.t
   val string : string Of_python.t
+  val callable : (pyobject array -> pyobject) Of_python.t
   val path : string Of_python.t
   val typerep : 'a Typerep_lib.Std.Typerep.t -> 'a Of_python.t
+
+  (** WARNING: Do not use [pyobject] together with [Broadcast.t] - if you do, every value
+      passed to the relevant python argument will be interpreted as a constant for the
+      purposes of the broadcast, even if the value is a list or pandas series, which is
+      probably not what you want. *)
   val pyobject : pyobject Of_python.t
+
   val pair : 'a Of_python.t -> 'b Of_python.t -> ('a * 'b) Of_python.t
 
   val triple
@@ -90,7 +98,7 @@ module Param : sig
     -> 'a Broadcast.t t
 
   val keyword_broadcast
-    :  ?default:'a Broadcast.t
+    :  ?default:'a
     -> string
     -> 'a Of_python.t
     -> docstring:string

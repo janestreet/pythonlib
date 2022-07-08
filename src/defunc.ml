@@ -312,7 +312,29 @@ module Param = struct
   let int = Of_python.create ~type_name:"int" ~conv:int_of_python
   let float = Of_python.create ~type_name:"float" ~conv:float_of_python
   let bool = Of_python.create ~type_name:"bool" ~conv:bool_of_python
+
+  let char =
+    Of_python.create ~type_name:"char" ~conv:(fun pyobject ->
+      let string = string_of_python pyobject in
+      match String.to_list string with
+      | [ c ] -> c
+      | _ -> value_errorf "expected a single character, got \"%s\"" string)
+  ;;
+
   let string = Of_python.create ~type_name:"string" ~conv:string_of_python
+
+  let callable =
+    Of_python.create ~type_name:"callback" ~conv:(fun pyobject ->
+      let () =
+        if not (Py.Callable.check pyobject)
+        then
+          value_errorf
+            "expected a function or callable object, got %s"
+            (Py.Type.get pyobject |> Py.Type.name)
+            ()
+      in
+      Py.Callable.to_function pyobject)
+  ;;
 
   let path =
     Of_python.create ~type_name:"path" ~conv:(fun pyobject ->
@@ -479,6 +501,7 @@ module Param = struct
   ;;
 
   let keyword_broadcast ?default arg_name of_python =
+    let default = Option.map default ~f:Broadcast.constant in
     keyword ?default arg_name (with_broadcast of_python ~arg_name)
   ;;
 

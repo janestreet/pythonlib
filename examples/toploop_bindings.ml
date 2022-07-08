@@ -111,7 +111,9 @@ let toploop_eval_and_get typerep str =
     toploop_eval
       ~verbose:false
       (Printf.sprintf "let out : %s = (%s);;" (Py_typerep.to_ocaml typerep) str);
-    let path, _ = Env.lookup_value ~loc:dummy_loc (Lident "out") !Toploop.toplevel_env in
+    let path, _, _ =
+      Env.lookup_value ~loc:dummy_loc (Lident "out") !Toploop.toplevel_env
+    in
     let obj = Toploop.eval_value_path !Toploop.toplevel_env path in
     Py_typerep.ocaml_to_python typerep (Caml.Obj.obj obj)
   in
@@ -121,7 +123,7 @@ let toploop_eval_and_get typerep str =
 
 let toploop_eval_and_get_no_type str =
   toploop_eval ~verbose:false (Printf.sprintf "let out = (%s);;" str);
-  let path, value_description =
+  let path, value_description, _mode =
     Env.lookup_value ~loc:dummy_loc (Lident "out") !Toploop.toplevel_env
   in
   let obj = Toploop.eval_value_path !Toploop.toplevel_env path in

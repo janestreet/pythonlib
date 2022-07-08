@@ -47,7 +47,7 @@ let of_type_desc type_desc ~env =
        | [ t1; t2; t3; t4 ] -> Ok (Tuple4 (t1, t2, t3, t4))
        | [ t1; t2; t3; t4; t5 ] -> Ok (Tuple5 (t1, t2, t3, t4, t5))
        | _ -> Or_error.errorf "tuple with too many elements (%d)" (List.length tuple))
-    | Tarrow (kind, e1, e2, _) ->
+    | Tarrow ((kind, _, _), e1, e2, _) ->
       let%bind e1 = walk e1.desc in
       let%bind e2 = walk e2.desc in
       Ok (Arrow (kind, e1, e2))

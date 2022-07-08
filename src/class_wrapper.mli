@@ -25,20 +25,19 @@ module Method : sig
     -> string
     (** In the [methods] callbacks, [self] contains both the embeded ocaml
         value as well as the Python wrapper object. *)
-    -> ('a cls -> self:'a * pyobject -> args:pyobject list -> pyobject)
+    -> (self:'a * pyobject -> args:pyobject list -> pyobject)
     -> 'a t
 
   val create_raw
     :  ?docstring:string
     -> string (** In the raw callbacks, [self] contains only the Python wrapper object. *)
-    -> ('a cls -> self:pyobject -> args:pyobject list -> pyobject)
+    -> (self:pyobject -> args:pyobject list -> pyobject)
     -> 'a t
 
   val create_with_keywords
     :  ?docstring:string
     -> string
-    -> ('a cls
-        -> self:'a * pyobject
+    -> (self:'a * pyobject
         -> args:pyobject list
         -> keywords:(string, pyobject, String.comparator_witness) Map.t
         -> pyobject)
@@ -47,14 +46,10 @@ module Method : sig
   val defunc
     :  ?docstring:string
     -> string
-    -> ('a cls -> self:'a * pyobject -> pyobject) Defunc.t
+    -> (self:'a * pyobject -> pyobject) Defunc.t
     -> 'a t
 
-  val no_arg
-    :  ?docstring:string
-    -> string
-    -> ('a cls -> self:'a * pyobject -> pyobject)
-    -> 'a t
+  val no_arg : ?docstring:string -> string -> (self:'a * pyobject -> pyobject) -> 'a t
 end
 
 val make
@@ -64,7 +59,7 @@ val make
   -> ?init:'a Init.t
   -> ?fields:(string * pyobject) list
   -> string
-  -> methods:'a Method.t list
+  -> methods:('a t -> 'a Method.t list)
   -> 'a t
 
 val register_in_module : 'a t -> Py_module.t -> unit
