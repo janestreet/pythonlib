@@ -15,7 +15,7 @@ module Arg = struct
     { name : string
     ; of_python : 'a Of_python.t
     ; docstring : string
-    ; kind : [ `positional | `keyword of 'a option ]
+    ; kind : [ `positional | `keyword of 'a option | `positional_or_keyword of 'a option ]
     }
 end
 
@@ -99,7 +99,13 @@ let apply_ (type a) (t : a t) args kwargs =
         of_python.type_name
         (Exn.to_string e)
   in
-  let kwnames = Hash_set.create (module String) in
+  (* data: [true] for "is kwarg", [false] for "not kwarg" *)
+  let kwnames = Hashtbl.create (module String) in
+  let check_and_add_kwnames ?(is_kwarg = true) name =
+    match Hashtbl.add kwnames ~key:name ~data:is_kwarg with
+    | `Ok -> ()
+    | `Duplicate -> value_errorf "multiple keyword arguments with name %s" name
+  in
   let positional_arguments () =
     let rec loop : type a. a t -> string list = function
       | Return _ -> []
@@ -108,7 +114,7 @@ let apply_ (type a) (t : a t) args kwargs =
         let args = loop t in
         let args' = loop t' in
         args @ args'
-      | Arg { name; kind = `positional; _ } -> [ name ]
+      | Arg { name; kind = `positional | `positional_or_keyword _; _ } -> [ name ]
       | Arg { kind = `keyword _; _ } -> []
       | Opt_arg _ -> []
       | Star_args _ -> [ "other args" ]
@@ -141,23 +147,38 @@ let apply_ (type a) (t : a t) args kwargs =
       | Opt_arg { name; of_python; docstring = _ } ->
         if state.after_star_kwargs
         then value_errorf "keyword argument after **kwargs (%s)" name;
-        if Hash_set.mem kwnames name
-        then value_errorf "multiple keyword arguments with name %s" name;
-        Hash_set.add kwnames name;
+        check_and_add_kwnames name;
         let v = Map.find kwargs name in
         Option.map v ~f:(try_of_python ~of_python ~name), state
       | Arg { name; of_python; docstring = _; kind = `keyword default } ->
         if state.after_star_kwargs
         then value_errorf "keyword argument after **kwargs (%s)" name;
-        if Hash_set.mem kwnames name
-        then value_errorf "multiple keyword arguments with name %s" name;
-        Hash_set.add kwnames name;
+        check_and_add_kwnames name;
         (match Map.find kwargs name with
          | Some v -> try_of_python v ~of_python ~name, state
          | None ->
            (match default with
             | Some default -> default, state
             | None -> value_errorf "missing keyword argument: %s" name))
+      | Arg { name; of_python; docstring = _; kind = `positional_or_keyword default } ->
+        let pos = state.pos in
+        (match pos >= Array.length args with
+         | false ->
+           (* use positional args *)
+           check_and_add_kwnames name ~is_kwarg:false;
+           (* only check for name conflict, since we don't consume the name in kwargs *)
+           try_of_python args.(pos) ~of_python ~name, { state with pos = pos + 1 }
+         | true ->
+           (* use keyword args *)
+           if state.after_star_kwargs
+           then value_errorf "positional-or-keyword argument after **kwargs (%s)" name;
+           check_and_add_kwnames name;
+           (match Map.find kwargs name with
+            | Some v -> try_of_python v ~of_python ~name, state
+            | None ->
+              (match default with
+               | Some default -> default, state
+               | None -> value_errorf "missing keyword argument: %s" name)))
       | Star_args _docstring ->
         if state.after_star_args then value_errorf "multiple *args";
         let total_args_len = Array.length args in
@@ -170,18 +191,23 @@ let apply_ (type a) (t : a t) args kwargs =
         if state.after_star_kwargs then value_errorf "multiple **kwargs";
         let remaining_kwargs =
           Map.filter_keys kwargs ~f:(fun key ->
-            if Hash_set.mem kwnames key
-            then false
-            else (
-              Hash_set.add kwnames key;
-              true))
+            match Hashtbl.find kwnames key with
+            | None ->
+              Hashtbl.set kwnames ~key ~data:true;
+              true
+            | Some true -> false
+            | Some false ->
+              value_errorf "unexpected keyword argument %s set by positional argument" key)
         in
         remaining_kwargs, { state with after_star_kwargs = true }
   in
   let v, final_state = loop t ~state:State.init in
   Map.iter_keys kwargs ~f:(fun key ->
-    if not (Hash_set.mem kwnames key)
-    then value_errorf "unexpected keyword argument %s" key);
+    match Hashtbl.find kwnames key with
+    | None -> value_errorf "unexpected keyword argument %s" key
+    | Some true -> ()
+    | Some false ->
+      value_errorf "unexpected keyword argument %s set by positional argument" key);
   if final_state.pos <> Array.length args
   then
     value_errorf
@@ -226,6 +252,22 @@ let params_docstring t =
       ; sprintf ":type %s: %s" arg_name arg.of_python.type_name
       ]
       |> String.concat ~sep:"\n"
+    | `positional_or_keyword default ->
+      let default =
+        match default with
+        | None -> "mandatory"
+        | Some _ -> "with default"
+      in
+      let arg_name = escape_trailing_underscore arg.name in
+      [ sprintf
+          ":param %s: (positional %d or keyword) (%s) %s"
+          arg_name
+          pos
+          default
+          arg.docstring
+      ; sprintf ":type %s: %s" arg_name arg.of_python.type_name
+      ]
+      |> String.concat ~sep:"\n"
   in
   let opt_arg_docstring (arg : _ Opt_arg.t) =
     let arg_name = escape_trailing_underscore arg.Opt_arg.name in
@@ -250,6 +292,8 @@ let params_docstring t =
         [ `kw_mandatory (arg_docstring arg ~pos) ], pos
       | Arg ({ kind = `keyword (Some _); _ } as arg) ->
         [ `kw_opt (arg_docstring arg ~pos) ], pos
+      | Arg ({ kind = `positional_or_keyword _; _ } as arg) ->
+        [ `pos (arg_docstring arg ~pos) ], pos + 1
       | Opt_arg opt_arg -> [ `kw_opt (opt_arg_docstring opt_arg) ], pos
       | Star_args doc ->
         (* There should be no other positional arg past this one *)
@@ -268,8 +312,9 @@ let params_docstring t =
       | `kw_mandatory _, `kw_opt _ -> -1
       | `kw_opt _, `kw_mandatory _ -> 1
       | _ -> 0)
-    |> List.map ~f:(function `pos str | `kw_mandatory str | `kw_opt str | `other str ->
-      str)
+    |> List.map ~f:(function
+      | `pos str | `pos_or_kw str | `kw_mandatory str | `kw_opt str | `other str ->
+        str)
   in
   if List.is_empty params then None else String.concat params ~sep:"\n\n" |> Option.some
 ;;
@@ -297,6 +342,11 @@ module Param = struct
   let positional name of_python ~docstring =
     check_valid_arg_name name;
     Arg { name; of_python; docstring; kind = `positional }
+  ;;
+
+  let positional_or_keyword ?default name of_python ~docstring =
+    check_valid_arg_name name;
+    Arg { name; of_python; docstring; kind = `positional_or_keyword default }
   ;;
 
   let keyword ?default name of_python ~docstring =
@@ -577,5 +627,250 @@ module Param = struct
   let numpy_array3 kind layout =
     Of_python.create ~type_name:(numpy_type_name ~dims:3 kind layout) ~conv:(fun p ->
       to_numpy_array ~dims:3 kind layout p |> Bigarray.array3_of_genarray)
+  ;;
+
+  let%expect_test "test positional argument" =
+    if Py.is_initialized () |> not then Py.initialize ();
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = positional "a1" int ~docstring:"positional a1" in
+      fun () -> a1
+    in
+    apply defunc [| Py.Int.of_int 1 |] Core.String.Map.empty
+    |> Int.to_string
+    |> Core.print_endline;
+    [%expect {| 1 |}];
+    (* too many positional arguments *)
+    Expect_test_helpers_base.require_does_raise [%here] (fun () ->
+      let _result = apply defunc [| Py.Int.of_int 1; Py.none |] Core.String.Map.empty in
+      ());
+    [%expect {| ("Pyml__Py.Err(24, \"expected 1 arguments (a1), got 2\")") |}];
+    (* passed in a keyword argument *)
+    Expect_test_helpers_base.require_does_raise [%here] (fun () ->
+      let _result = apply defunc [||] (Core.String.Map.singleton "a1" Py.none) in
+      ());
+    [%expect {| ("Pyml__Py.Err(24, \"not enough arguments (got 0, expected a1)\")") |}]
+  ;;
+
+  let%expect_test "test keyword argument" =
+    if Py.is_initialized () |> not then Py.initialize ();
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = keyword "a1" int ~docstring:"keyword a1" in
+      fun () -> a1
+    in
+    apply defunc [||] (Core.String.Map.singleton "a1" (Py.Int.of_int 1))
+    |> Int.to_string
+    |> Core.print_endline;
+    [%expect {| 1 |}];
+    (* too many keyword arguments *)
+    Expect_test_helpers_base.require_does_raise [%here] (fun () ->
+      let _result =
+        apply
+          defunc
+          [||]
+          (Core.String.Map.of_alist_exn [ "a1", Py.Int.of_int 1; "a2", Py.none ])
+      in
+      ());
+    [%expect {| ("Pyml__Py.Err(24, \"unexpected keyword argument a2\")") |}];
+    (* passed in a positional argument *)
+    Expect_test_helpers_base.require_does_raise [%here] (fun () ->
+      let _result = apply defunc [| Py.none |] Core.String.Map.empty in
+      ());
+    [%expect {| ("Pyml__Py.Err(24, \"missing keyword argument: a1\")") |}]
+  ;;
+
+  let%expect_test "test positional-or-keyword docstring" =
+    if Py.is_initialized () |> not then Py.initialize ();
+    (* Common use-cases *)
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
+      and a3 = positional_or_keyword "a3" int ~docstring:"positional-or-keyword a3"
+      and a4 = keyword "a4" int ~docstring:"keyword a4" in
+      fun () -> ([ a1; a2; a3; a4 ] : int list) |> ignore
+    in
+    (* docstring *)
+    params_docstring defunc |> Core.print_endline;
+    [%expect
+      {|
+      :param a1: (positional 0) positional a1
+      :type a1: int
+
+      :param a2: (positional 1 or keyword) (mandatory) positional-or-keyword a2
+      :type a2: int
+
+      :param a3: (positional 2 or keyword) (mandatory) positional-or-keyword a3
+      :type a3: int
+
+      :param a4: (mandatory keyword) keyword a4
+      :type a4: int |}]
+  ;;
+
+  let%expect_test "test positional-or-keyword argument" =
+    if Py.is_initialized () |> not then Py.initialize ();
+    (* Common use-cases *)
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
+      and a3 = keyword "a3" int ~docstring:"keyword a3"
+      and star_args = star_args ~docstring:"star_args"
+      and star_kwargs = star_kwargs ~docstring:"star_kwargs" in
+      fun () ->
+        let star_args =
+          List.map ~f:Py.Object.to_string star_args
+          |> sexp_of_list sexp_of_string
+          |> Sexp.to_string
+        in
+        let star_kwargs =
+          Map.map ~f:Py.Object.to_string star_kwargs
+          |> Core.String.Map.sexp_of_t sexp_of_string
+          |> Sexp.to_string
+        in
+        Core.print_endline
+          [%string "%{a1#Int} %{a2#Int} %{a3#Int} %{star_args} %{star_kwargs}"]
+    in
+    (* as positional *)
+    apply
+      defunc
+      [| Py.Int.of_int 1; Py.Int.of_int 2; Py.Int.of_int 4 |]
+      (Core.String.Map.singleton "a3" (Py.Int.of_int 3));
+    [%expect {| 1 2 3 (4) () |}];
+    (* as keyword *)
+    apply
+      defunc
+      [| Py.Int.of_int 1 |]
+      (Core.String.Map.of_alist_exn
+         [ "a2", Py.Int.of_int 2; "a3", Py.Int.of_int 3; "a5", Py.Int.of_int 5 ]);
+    [%expect {| 1 2 3 () ((a5 5)) |}]
+  ;;
+
+  let%expect_test "test positional-or-keyword optional argument" =
+    if Py.is_initialized () |> not then Py.initialize ();
+    (* Common use-cases *)
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      and a2 =
+        positional_or_keyword "a2" int ~default:22 ~docstring:"positional-or-keyword a2"
+      and a3 = keyword "a3" int ~docstring:"keyword a3"
+      and star_args = star_args ~docstring:"star_args"
+      and star_kwargs = star_kwargs ~docstring:"star_kwargs" in
+      fun () ->
+        let star_args =
+          List.map ~f:Py.Object.to_string star_args
+          |> sexp_of_list sexp_of_string
+          |> Sexp.to_string
+        in
+        let star_kwargs =
+          Map.map ~f:Py.Object.to_string star_kwargs
+          |> Core.String.Map.sexp_of_t sexp_of_string
+          |> Sexp.to_string
+        in
+        Core.print_endline
+          [%string "%{a1#Int} %{a2#Int} %{a3#Int} %{star_args} %{star_kwargs}"]
+    in
+    (* as positional *)
+    apply
+      defunc
+      [| Py.Int.of_int 1; Py.Int.of_int 2; Py.Int.of_int 4 |]
+      (Core.String.Map.singleton "a3" (Py.Int.of_int 3));
+    [%expect {| 1 2 3 (4) () |}];
+    (* as keyword *)
+    apply
+      defunc
+      [| Py.Int.of_int 1 |]
+      (Core.String.Map.of_alist_exn
+         [ "a2", Py.Int.of_int 2; "a3", Py.Int.of_int 3; "a5", Py.Int.of_int 5 ]);
+    [%expect {| 1 2 3 () ((a5 5)) |}];
+    (* as default *)
+    apply defunc [| Py.Int.of_int 1 |] (Core.String.Map.singleton "a3" (Py.Int.of_int 3));
+    [%expect {| 1 22 3 () () |}];
+    (* docstring *)
+    params_docstring defunc |> Core.print_endline;
+    [%expect
+      {|
+      :param a1: (positional 0) positional a1
+      :type a1: int
+
+      :param a2: (positional 1 or keyword) (with default) positional-or-keyword a2
+      :type a2: int
+
+      :param a3: (mandatory keyword) keyword a3
+      :type a3: int
+
+      :param other args: star_args
+
+      :param other keyword args: star_kwargs |}]
+  ;;
+
+  let%expect_test "test positional-or-keyword argument (out-of-order special case)" =
+    if Py.is_initialized () |> not then Py.initialize ();
+    (* Success only when there are enough positional arguments *)
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
+      and a3 = positional "a3" int ~docstring:"positional a3" in
+      fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a3#Int}"]
+    in
+    apply
+      defunc
+      [| Py.Int.of_int 1; Py.Int.of_int 2; Py.Int.of_int 3 |]
+      Core.String.Map.empty;
+    [%expect {| 1 2 3 |}]
+  ;;
+
+  let%expect_test "test positional-or-keyword argument (priority)" =
+    if Py.is_initialized () |> not then Py.initialize ();
+    (* positional argument prioritizes *)
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
+      and a3 = positional "a3" int ~docstring:"positional a3" in
+      fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a3#Int}"]
+    in
+    Expect_test_helpers_base.require_does_raise [%here] (fun () ->
+      apply
+        defunc
+        [| Py.Int.of_int 1; Py.Int.of_int 2; Py.Int.of_int 3 |]
+        (Core.String.Map.singleton "a2" (Py.Int.of_int 4)));
+    [%expect
+      {| ("Pyml__Py.Err(24, \"unexpected keyword argument a2 set by positional argument\")") |}]
+  ;;
+
+  let%expect_test "test positional-or-keyword argument (name conflict)" =
+    if Py.is_initialized () |> not then Py.initialize ();
+    (* name conflict *)
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
+      and a2_kw = keyword "a2" int ~docstring:"keyword a2" in
+      fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a2_kw#Int}"]
+    in
+    Expect_test_helpers_base.require_does_raise [%here] (fun () ->
+      apply
+        defunc
+        [| Py.Int.of_int 1; Py.Int.of_int 2; Py.Int.of_int 3 |]
+        (Core.String.Map.singleton "a2" (Py.Int.of_int 4)));
+    [%expect {| ("Pyml__Py.Err(24, \"multiple keyword arguments with name a2\")") |}];
+    (* name conflict: different order of arguments *)
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      and a2_kw = keyword "a2" int ~docstring:"keyword a2"
+      and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2" in
+      fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a2_kw#Int}"]
+    in
+    Expect_test_helpers_base.require_does_raise [%here] (fun () ->
+      apply
+        defunc
+        [| Py.Int.of_int 1; Py.Int.of_int 2; Py.Int.of_int 3 |]
+        (Core.String.Map.singleton "a2" (Py.Int.of_int 4)));
+    [%expect {| ("Pyml__Py.Err(24, \"multiple keyword arguments with name a2\")") |}]
   ;;
 end

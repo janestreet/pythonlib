@@ -12,13 +12,18 @@ build: [
 depends: [
   "ocaml" {>= "4.11.0" & < "4.13.0"}
   "base"
+  "core"
+  "expect_test_helpers_core"
+  "ppx_compare"
   "ppx_expect"
+  "ppx_here"
   "ppx_let"
   "ppx_python"
+  "ppx_string"
   "stdio"
   "typerep"
-  "dune"       {>= "2.0.0"}
-  "pyml"       {>= "20211015"}
+  "dune"                     {>= "2.0.0"}
+  "pyml"                     {>= "20211015"}
 ]
 synopsis: "A library to help writing wrappers around ocaml code for python"
 description: "

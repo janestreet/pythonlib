@@ -38,6 +38,14 @@ module Param : sig
 
   val map : 'a Of_python.t -> f:('a -> 'b) -> 'b Of_python.t
   val positional : string -> 'a Of_python.t -> docstring:string -> 'a t
+
+  val positional_or_keyword
+    :  ?default:'a
+    -> string
+    -> 'a Of_python.t
+    -> docstring:string
+    -> 'a t
+
   val keyword : ?default:'a -> string -> 'a Of_python.t -> docstring:string -> 'a t
   val keyword_opt : string -> 'a Of_python.t -> docstring:string -> 'a option t
   val int : int Of_python.t

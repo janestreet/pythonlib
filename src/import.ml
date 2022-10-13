@@ -16,11 +16,11 @@ let py_list_to_container_map_safe f pyobject ~container_init =
 ;;
 
 let py_list_to_list_map_safe f pyobject =
-  py_list_to_container_map_safe f pyobject ~container_init:List.init
+  py_list_to_container_map_safe f pyobject ~container_init:(List.init :> _ -> f:_ -> _)
 ;;
 
 let py_list_to_array_map_safe f pyobject =
-  py_list_to_container_map_safe f pyobject ~container_init:Array.init
+  py_list_to_container_map_safe f pyobject ~container_init:(Array.init :> _ -> f:_ -> _)
 ;;
 
 module Of_pythonable (Pythonable : sig
