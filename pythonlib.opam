@@ -11,7 +11,7 @@ build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
-  "ocaml"      {>= "4.11.0" & < "4.13.0"}
+  "ocaml"      {>= "4.11.0"}
   "base"       {>= "v0.15" & < "v0.16"}
   "ppx_expect" {>= "v0.15" & < "v0.16"}
   "ppx_let"    {>= "v0.15" & < "v0.16"}
