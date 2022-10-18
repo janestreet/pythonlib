@@ -243,7 +243,7 @@ let write_function
 let write_value ident value_description outc ~indent ~env ~all_types =
   let pr s = pr outc ~indent s in
   let path_str = Module_env.path env |> Module_env.Path.names |> String.concat ~sep:"." in
-  match Type.of_type_desc (Types.get_desc value_description.Types.val_type) ~env with
+  match Type.of_type_desc (Compat.get_desc value_description.Types.val_type) ~env with
   | Error _err -> None
   | Ok type_ ->
     let python_name =
