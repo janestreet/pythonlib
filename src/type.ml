@@ -33,12 +33,22 @@ let of_type_desc type_desc ~env =
     | Tnil -> Or_error.error_string "not handled: Tnil"
     | Tobject (_, _) -> Or_error.error_string "not handled: Tobject"
     | Tfield (_, _, _, _) -> Or_error.error_string "not handled: Tfield"
-    | Tpackage (_, _) -> Or_error.error_string "not handled: Tpackage"
+    | Tpackage (_, _)
+        [@if ocaml_version >= (4, 13, 0)]
+      -> Or_error.error_string "not handled: Tpackage"
+    | Tpackage (_, _, _)
+        [@if ocaml_version < (4, 13, 0)]
+      -> Or_error.error_string "not handled: Tpackage"
     | Tpoly (_, _) -> Or_error.error_string "not handled: Tpoly"
-    | Tlink e -> walk (Types.get_desc e)
-    | Tsubst (e, _) -> walk (Types.get_desc e)
+    | Tlink e -> walk (Compat.get_desc e)
+    | Tsubst (e, _)
+        [@if ocaml_version >= (4, 13, 0)]
+      -> walk (Compat.get_desc e)
+    | Tsubst e
+        [@if ocaml_version < (4, 13, 0)]
+      -> walk (Compat.get_desc e)
     | Ttuple es ->
-      let%bind tuple = List.map es ~f:(fun e -> walk (Types.get_desc e)) |> Or_error.all in
+      let%bind tuple = List.map es ~f:(fun e -> walk (Compat.get_desc e)) |> Or_error.all in
       (match tuple with
        | [] -> Or_error.error_string "empty tuple"
        | [ _ ] -> Or_error.error_string "tuple with a single element"
@@ -48,8 +58,8 @@ let of_type_desc type_desc ~env =
        | [ t1; t2; t3; t4; t5 ] -> Ok (Tuple5 (t1, t2, t3, t4, t5))
        | _ -> Or_error.errorf "tuple with too many elements (%d)" (List.length tuple))
     | Tarrow (kind, e1, e2, _) ->
-      let%bind e1 = walk (Types.get_desc e1) in
-      let%bind e2 = walk (Types.get_desc e2) in
+      let%bind e1 = walk (Compat.get_desc e1) in
+      let%bind e2 = walk (Compat.get_desc e2) in
       Ok (Arrow (kind, e1, e2))
     | Tconstr (constr, [], _) ->
       let last = Path.last constr in
@@ -78,7 +88,7 @@ let of_type_desc type_desc ~env =
           let path, type_name = walk path name_list in
           Ok (Atom (path, type_name)))
     | Tconstr (constr, [ param ], _) ->
-      let%bind param = walk (Types.get_desc param) in
+      let%bind param = walk (Compat.get_desc param) in
       let last = Path.last constr in
       if Set.mem supported_constr1 last
       then Ok (Apply (param, last))
