@@ -540,6 +540,26 @@ let following_weekday () = (* Core__Date.t -> Core__Date.t *)
   |> python_of_core__date__t
 ;;
 
+let round_forward_to_weekday () = (* Core__Date.t -> Core__Date.t *)
+  let%map_open
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
+  in
+  fun () ->
+  Core__Date.round_forward_to_weekday
+    positional_1
+  |> python_of_core__date__t
+;;
+
+let round_backward_to_weekday () = (* Core__Date.t -> Core__Date.t *)
+  let%map_open
+    positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t"
+  in
+  fun () ->
+  Core__Date.round_backward_to_weekday
+    positional_1
+  |> python_of_core__date__t
+;;
+
 let first_strictly_after () = (* Core__Date.t -> on:Core__.Day_of_week.t -> Core__Date.t *)
   let%map_open
     positional_1 = positional "positional_1" param_core__date__t ~docstring:"Core__Date.t" and
@@ -1045,6 +1065,8 @@ let register_module ~module_name =
   Py_module.set modl "weekdays_between" (weekdays_between ());
   Py_module.set modl "previous_weekday" (previous_weekday ());
   Py_module.set modl "following_weekday" (following_weekday ());
+  Py_module.set modl "round_forward_to_weekday" (round_forward_to_weekday ());
+  Py_module.set modl "round_backward_to_weekday" (round_backward_to_weekday ());
   Py_module.set modl "first_strictly_after" (first_strictly_after ());
   Py_module.set modl "days_in_month" (days_in_month ());
   Py_module.set modl "is_leap_year" (is_leap_year ());
