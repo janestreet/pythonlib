@@ -10,6 +10,9 @@ module Of_python : sig
     }
 
   val create : type_name:string -> conv:(pyobject -> 'a) -> 'a t
+
+  (** [map t ~f] has the same [type_name] as [t]. *)
+  val map : 'a t -> f:('a -> 'b) -> 'b t
 end
 
 include Applicative.S with type 'a t := 'a t

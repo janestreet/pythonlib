@@ -66,26 +66,28 @@ let excluded_prefixes =
 
 let make_traceback backtrace =
   (* This returns the most recent function call at the beginning of the array. *)
-  Caml.Printexc.backtrace_slots backtrace
+  Stdlib.Printexc.backtrace_slots backtrace
   |> Option.value ~default:[||]
   |> Array.to_list
   |> List.filter_map ~f:(fun slot ->
     let function_name =
-      Caml.Printexc.Slot.name slot |> Option.value ~default:"unknown"
+      Stdlib.Printexc.Slot.name slot |> Option.value ~default:"unknown"
     in
     if List.exists excluded_prefixes ~f:(fun prefix ->
       String.is_prefix function_name ~prefix)
     then None
     else (
       let filename =
-        Caml.Printexc.Slot.location slot
+        Stdlib.Printexc.Slot.location slot
         |> Option.value_map
-             ~f:(fun loc -> loc.Caml.Printexc.filename)
+             ~f:(fun loc -> loc.Stdlib.Printexc.filename)
              ~default:"unknown"
       in
       let line_number =
-        Caml.Printexc.Slot.location slot
-        |> Option.value_map ~f:(fun loc -> loc.Caml.Printexc.line_number) ~default:42
+        Stdlib.Printexc.Slot.location slot
+        |> Option.value_map
+             ~f:(fun loc -> loc.Stdlib.Printexc.line_number)
+             ~default:42
       in
       let function_name = Printf.sprintf "%s:%d" function_name line_number in
       Some { Py.Traceback.filename; function_name; line_number }))

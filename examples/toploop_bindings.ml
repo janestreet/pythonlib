@@ -115,7 +115,7 @@ let toploop_eval_and_get typerep str =
       Env.lookup_value ~loc:dummy_loc (Lident "out") !Toploop.toplevel_env
     in
     let obj = Toploop.eval_value_path !Toploop.toplevel_env path in
-    Py_typerep.ocaml_to_python typerep (Caml.Obj.obj obj)
+    Py_typerep.ocaml_to_python typerep (Stdlib.Obj.obj obj)
   in
   let (T typerep) = Py_typerep.parse typerep in
   eval_value typerep
@@ -132,7 +132,7 @@ let toploop_eval_and_get_no_type str =
     |> Or_error.ok_exn
     |> Py_typerep.of_type
   in
-  Py_typerep.ocaml_to_python typerep (Caml.Obj.obj obj)
+  Py_typerep.ocaml_to_python typerep (Stdlib.Obj.obj obj)
 ;;
 
 let register_module ~module_name =

@@ -32,3 +32,5 @@ val zip3 : 'a t -> 'b t -> 'c t -> ('a * 'b * 'c) t
 val zip4 : 'a t -> 'b t -> 'c t -> 'd t -> ('a * 'b * 'c * 'd) t
 val to_list : 'a t -> 'a list
 val python_of_t : 'a t -> 'b list -> to_python:('b -> pyobject) -> pyobject
+val python_of_t' : 'a t -> to_python:('a -> pyobject) -> pyobject
+val index : 'a t -> pyobject option

@@ -80,8 +80,8 @@ val wrap_ocaml_errors : (unit -> 'a) -> 'a
     in an infinite loop.
 *)
 val raise_py_err_with_backtrace
-  :  ?unwrap_more:(exn -> (Caml.Printexc.raw_backtrace list * exn) option)
-  -> ?backtrace:Caml.Printexc.raw_backtrace
+  :  ?unwrap_more:(exn -> (Stdlib.Printexc.raw_backtrace list * exn) option)
+  -> ?backtrace:Stdlib.Printexc.raw_backtrace
   -> exn
   -> 'a
 

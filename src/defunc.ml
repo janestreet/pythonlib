@@ -8,6 +8,10 @@ module Of_python = struct
     }
 
   let create ~type_name ~conv = { type_name; conv }
+
+  let map { type_name; conv } ~f =
+    { type_name; conv = (fun py_obj -> py_obj |> conv |> f) }
+  ;;
 end
 
 module Arg = struct

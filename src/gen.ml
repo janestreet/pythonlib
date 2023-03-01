@@ -243,7 +243,7 @@ let write_function
 let write_value ident value_description outc ~indent ~env ~all_types =
   let pr s = pr outc ~indent s in
   let path_str = Module_env.path env |> Module_env.Path.names |> String.concat ~sep:"." in
-  match Type.of_type_desc value_description.Types.val_type.desc ~env with
+  match Type.of_type_desc (Types.get_desc value_description.Types.val_type) ~env with
   | Error _err -> None
   | Ok type_ ->
     let python_name =
@@ -357,7 +357,9 @@ let write_ml outc (cmi_infos : Cmi_format.cmi_infos) =
   pr "";
   let env =
     Module_env.create ()
-    |> Module_env.enter_module ~module_ident:(Ident.create_local cmi_infos.cmi_name)
+    |> Module_env.enter_module
+         ~module_ident:
+           (Ident.create_local (cmi_infos.cmi_name |> Compilation_unit.name_as_string))
   in
   let ts = List.filter_map cmi_infos.cmi_sign ~f:(walk ~indent:0 ~env) in
   pr "";

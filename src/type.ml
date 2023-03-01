@@ -33,12 +33,16 @@ let of_type_desc type_desc ~env =
     | Tnil -> Or_error.error_string "not handled: Tnil"
     | Tobject (_, _) -> Or_error.error_string "not handled: Tobject"
     | Tfield (_, _, _, _) -> Or_error.error_string "not handled: Tfield"
-    | Tpackage (_, _, _) -> Or_error.error_string "not handled: Tpackage"
-    | Tpoly (_, _) -> Or_error.error_string "not handled: Tpoly"
-    | Tlink e -> walk e.desc
-    | Tsubst e -> walk e.desc
+    | Tpackage _ -> Or_error.error_string "not handled: Tpackage"
+    | Tpoly (ty, []) -> walk (Types.get_desc ty)
+    | Tpoly (_, _) -> Or_error.error_string "not handled: non-mono Tpoly"
+    | Tlink e -> walk (Types.get_desc e)
+    | Tsubst (e1, None) -> walk (Types.get_desc e1)
+    | Tsubst (e1, Some e2) -> walk (Ttuple [ e1; e2 ])
     | Ttuple es ->
-      let%bind tuple = List.map es ~f:(fun e -> walk e.desc) |> Or_error.all in
+      let%bind tuple =
+        List.map es ~f:(fun e -> walk (Types.get_desc e)) |> Or_error.all
+      in
       (match tuple with
        | [] -> Or_error.error_string "empty tuple"
        | [ _ ] -> Or_error.error_string "tuple with a single element"
@@ -48,8 +52,8 @@ let of_type_desc type_desc ~env =
        | [ t1; t2; t3; t4; t5 ] -> Ok (Tuple5 (t1, t2, t3, t4, t5))
        | _ -> Or_error.errorf "tuple with too many elements (%d)" (List.length tuple))
     | Tarrow ((kind, _, _), e1, e2, _) ->
-      let%bind e1 = walk e1.desc in
-      let%bind e2 = walk e2.desc in
+      let%bind e1 = walk (Types.get_desc e1) in
+      let%bind e2 = walk (Types.get_desc e2) in
       Ok (Arrow (kind, e1, e2))
     | Tconstr (constr, [], _) ->
       let last = Path.last constr in
@@ -78,7 +82,7 @@ let of_type_desc type_desc ~env =
           let path, type_name = walk path name_list in
           Ok (Atom (path, type_name)))
     | Tconstr (constr, [ param ], _) ->
-      let%bind param = walk param.desc in
+      let%bind param = walk (Types.get_desc param) in
       let last = Path.last constr in
       if Set.mem supported_constr1 last
       then Ok (Apply (param, last))

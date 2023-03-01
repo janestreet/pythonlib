@@ -121,9 +121,17 @@ let create pyobject of_python ~arg_name =
   else (
     match Lazy.force pd_series with
     | Some pd_series when Py.Object.is_instance pyobject pd_series ->
-      let values =
-        Option.value_exn (Py.Object.get_attr_string pyobject "values") |> map
-      in
+      (* Make sure to use "Series.array" instead of "Series.values". Because, given a
+         series of datetimes, calling df['start'].values produces an array of datetime64s.
+         However, accessing each element directly (e.g. df['start'][0] ) gives us
+         Timestamp which contains timezone information.
+
+         Relevant links:
+         https://stackoverflow.com/questions/21989286/why-pandas-series-return-the-element-of-my-numpy-datetime64-array-as-timestamp
+         https://pandas.pydata.org/docs/reference/api/pandas.Series.values.html
+
+      *)
+      let values = Option.value_exn (Py.Object.get_attr_string pyobject "array") |> map in
       let index = Some (Option.value_exn (Py.Object.get_attr_string pyobject "index")) in
       List_or_series { values; list_arg_names = [ arg_name ]; index }
     | Some _ | None -> Single_value (of_python pyobject))
@@ -169,4 +177,12 @@ let python_of_t t values ~to_python =
      | Some index ->
        let pd_series = Option.value_exn (Lazy.force pd_series) in
        Py.Callable.to_function pd_series [| Py.List.of_list_map to_python values; index |])
+;;
+
+let python_of_t' values ~to_python = python_of_t values (to_list values) ~to_python
+
+let index t =
+  match t with
+  | Single_value _ -> None
+  | List_or_series { values = _; index; list_arg_names = _ } -> index
 ;;

@@ -135,14 +135,6 @@ let wrap t obj =
   Py.Object.call_function_obj_args cls [| wrap_capsule t obj |]
 ;;
 
-let protect ~f =
-  try f () with
-  | Py.Err _ as pyerr -> raise pyerr
-  | exn ->
-    let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
-    raise (Py.Err (ValueError, msg))
-;;
-
 let make ?to_string_repr ?to_string ?eq ?init ?(fields = []) name ~methods =
   let id = Id.create () in
   let t =
@@ -186,17 +178,17 @@ let make ?to_string_repr ?to_string ?eq ?init ?(fields = []) name ~methods =
         match (fn : _ Method.fn) with
         | No_keywords fn ->
           Py.Callable.of_function ~name ?docstring (fun args ->
-            protect ~f:(fun () ->
+            protect_python ~f:(fun () ->
               let self, args = self_and_args args in
               fn ~self:(unwrap_exn t self, self) ~args))
         | No_keywords_raw fn ->
           Py.Callable.of_function ~name ?docstring (fun args ->
-            protect ~f:(fun () ->
+            protect_python ~f:(fun () ->
               let self, args = self_and_args args in
               fn ~self ~args))
         | With_keywords fn ->
           Py.Callable.of_function_with_keywords ~name ?docstring (fun args keywords ->
-            protect ~f:(fun () ->
+            protect_python ~f:(fun () ->
               let self, args = self_and_args args in
               let keywords =
                 Py_module.keywords_of_python keywords |> Or_error.ok_exn

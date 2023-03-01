@@ -5,7 +5,9 @@ let rec print_signature : string -> Types.signature_item -> env:Module_env.t -> 
   fun indent s ~env ->
   match s with
   | Sig_value (ident, value_description, Exported) ->
-    let simple_type = Type.of_type_desc value_description.val_type.desc ~env in
+    let simple_type =
+      Type.of_type_desc (Types.get_desc value_description.val_type) ~env
+    in
     let simple_type =
       match simple_type with
       | Ok simple_type -> Type.to_string simple_type
@@ -44,13 +46,15 @@ let () =
       Stdio.Out_channel.with_file out_ml ~f:(fun outc -> Gen.write_ml outc cmi_infos)
     in
     Stdio.Out_channel.with_file
-      (Caml.Filename.dirname out_ml ^ "/gen_types.ml")
+      (Stdlib.Filename.dirname out_ml ^ "/gen_types.ml")
       ~f:(fun outc -> Gen.write_types outc all_types);
-    Stdio.printf "cmi_name %s\n%!" cmi_infos.cmi_name;
+    Stdio.printf "cmi_name %a\n%!" Compilation_unit.output cmi_infos.cmi_name;
     Stdio.printf "cmi_sign %d\n%!" (List.length cmi_infos.cmi_sign);
     let env =
       Module_env.create ()
-      |> Module_env.enter_module ~module_ident:(Ident.create_local cmi_infos.cmi_name)
+      |> Module_env.enter_module
+           ~module_ident:
+             (Ident.create_local (cmi_infos.cmi_name |> Compilation_unit.name_as_string))
     in
     List.iter cmi_infos.cmi_sign ~f:(print_signature "  " ~env)
   | _ -> Printf.failwithf "usage: python_gen.exe example.cmi out.ml" ()
