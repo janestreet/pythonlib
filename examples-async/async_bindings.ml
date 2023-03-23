@@ -25,9 +25,7 @@ let register_module ~module_name =
       and fn = positional "fn" pyobject ~docstring:"the function to run" in
       ignore (Py.Object.call_function_obj_args fn [||] : pyobject);
       Clock_ns.every (Time_ns.Span.of_string span) (fun () ->
-        Stdio.printf
-          "hello from python-ocaml %s\n%!"
-          (Time_ns.now () |> Time_ns.to_string);
+        Stdio.printf "hello from python-ocaml %s\n%!" (Time_ns.now () |> Time_ns.to_string);
         (* Calling back into python from the async scheduler which runs
            in a different thread would result in a segfault if we do
            not hold the GIL.

@@ -268,9 +268,7 @@ and python_to_ocaml : type a. a Typerep.t -> pyobject -> a =
   | Function ((Tuple _ as t1), t2) ->
     check pyobj ~name:"callable" ~check:Py.Callable.check;
     protect ~f:(fun x ->
-      ocaml_to_python t1 x
-      |> Py.Callable.to_function_as_tuple pyobj
-      |> python_to_ocaml t2)
+      ocaml_to_python t1 x |> Py.Callable.to_function_as_tuple pyobj |> python_to_ocaml t2)
   | Function (t1, t2) ->
     check pyobj ~name:"callable" ~check:Py.Callable.check;
     protect ~f:(fun x ->

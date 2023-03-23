@@ -181,8 +181,19 @@ let python_of_t t values ~to_python =
 
 let python_of_t' values ~to_python = python_of_t values (to_list values) ~to_python
 
-let index t =
-  match t with
-  | Single_value _ -> None
-  | List_or_series { values = _; index; list_arg_names = _ } -> index
+let df_of_t t ~data ~kwargs =
+  let index =
+    match t with
+    | Single_value _ -> None
+    | List_or_series { values = _; index; list_arg_names = _ } -> index
+  in
+  let df = Lazy.force pd_dataframe in
+  match df, index with
+  | None, _ -> data
+  | Some df, None ->
+    (* The following is equivalent to pandas.Dataframe(data, index=None, **kwargs) *)
+    Py.Callable.to_function_with_keywords df [| data |] kwargs
+  | Some df, Some index ->
+    (* The following is equivalent to pandas.Dataframe(data, index, **kwargs) *)
+    Py.Callable.to_function_with_keywords df [| data; index |] kwargs
 ;;

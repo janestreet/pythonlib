@@ -85,9 +85,7 @@ let make_traceback backtrace =
       in
       let line_number =
         Stdlib.Printexc.Slot.location slot
-        |> Option.value_map
-             ~f:(fun loc -> loc.Stdlib.Printexc.line_number)
-             ~default:42
+        |> Option.value_map ~f:(fun loc -> loc.Stdlib.Printexc.line_number) ~default:42
       in
       let function_name = Printf.sprintf "%s:%d" function_name line_number in
       Some { Py.Traceback.filename; function_name; line_number }))

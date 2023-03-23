@@ -33,4 +33,10 @@ val zip4 : 'a t -> 'b t -> 'c t -> 'd t -> ('a * 'b * 'c * 'd) t
 val to_list : 'a t -> 'a list
 val python_of_t : 'a t -> 'b list -> to_python:('b -> pyobject) -> pyobject
 val python_of_t' : 'a t -> to_python:('a -> pyobject) -> pyobject
-val index : 'a t -> pyobject option
+
+(** Creates a dataframe that maintains the original indexing of [t].
+
+    This effectively calls pandas.DataFrame(data, index, **kwargs) where index is the
+    index of [t].
+*)
+val df_of_t : _ t -> data:pyobject -> kwargs:(string * pyobject) list -> pyobject

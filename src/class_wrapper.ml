@@ -190,9 +190,7 @@ let make ?to_string_repr ?to_string ?eq ?init ?(fields = []) name ~methods =
           Py.Callable.of_function_with_keywords ~name ?docstring (fun args keywords ->
             protect_python ~f:(fun () ->
               let self, args = self_and_args args in
-              let keywords =
-                Py_module.keywords_of_python keywords |> Or_error.ok_exn
-              in
+              let keywords = Py_module.keywords_of_python keywords |> Or_error.ok_exn in
               fn ~self:(unwrap_exn t self, self) ~args ~keywords))
       in
       name, fn)
