@@ -128,82 +128,82 @@ let apply_ (type a) (t : a t) args kwargs =
   in
   let rec loop : type a. a t -> state:State.t -> a * State.t =
     fun t ~state ->
-      match t with
-      | Return a -> a, state
-      | Map (t, f) ->
-        let v, state = loop t ~state in
-        f v, state
-      | Both (t, t') ->
-        let v, state = loop t ~state in
-        let v', state = loop t' ~state in
-        (v, v'), state
-      | Arg { name; of_python; docstring = _; kind = `positional } ->
-        if state.after_star_args
-        then value_errorf "positional argument after *args (%s)" name;
-        let pos = state.pos in
-        if pos >= Array.length args
-        then
-          value_errorf
-            "not enough arguments (got %d, expected %s)"
-            (Array.length args)
-            (positional_arguments () |> String.concat ~sep:", ");
-        try_of_python args.(pos) ~of_python ~name, { state with pos = pos + 1 }
-      | Opt_arg { name; of_python; docstring = _ } ->
-        if state.after_star_kwargs
-        then value_errorf "keyword argument after **kwargs (%s)" name;
-        check_and_add_kwnames name;
-        let v = Map.find kwargs name in
-        Option.map v ~f:(try_of_python ~of_python ~name), state
-      | Arg { name; of_python; docstring = _; kind = `keyword default } ->
-        if state.after_star_kwargs
-        then value_errorf "keyword argument after **kwargs (%s)" name;
-        check_and_add_kwnames name;
-        (match Map.find kwargs name with
-         | Some v -> try_of_python v ~of_python ~name, state
-         | None ->
-           (match default with
-            | Some default -> default, state
-            | None -> value_errorf "missing keyword argument: %s" name))
-      | Arg { name; of_python; docstring = _; kind = `positional_or_keyword default } ->
-        let pos = state.pos in
-        (match pos >= Array.length args with
-         | false ->
-           (* use positional args *)
-           check_and_add_kwnames name ~is_kwarg:false;
-           (* only check for name conflict, since we don't consume the name in kwargs *)
-           try_of_python args.(pos) ~of_python ~name, { state with pos = pos + 1 }
-         | true ->
-           (* use keyword args *)
-           if state.after_star_kwargs
-           then value_errorf "positional-or-keyword argument after **kwargs (%s)" name;
-           check_and_add_kwnames name;
-           (match Map.find kwargs name with
-            | Some v -> try_of_python v ~of_python ~name, state
-            | None ->
-              (match default with
-               | Some default -> default, state
-               | None -> value_errorf "missing keyword argument: %s" name)))
-      | Star_args _docstring ->
-        if state.after_star_args then value_errorf "multiple *args";
-        let total_args_len = Array.length args in
-        let args =
-          Array.sub args ~pos:state.pos ~len:(Array.length args - state.pos)
-          |> Array.to_list
-        in
-        args, { state with pos = total_args_len; after_star_args = true }
-      | Star_kwargs _docstring ->
-        if state.after_star_kwargs then value_errorf "multiple **kwargs";
-        let remaining_kwargs =
-          Map.filter_keys kwargs ~f:(fun key ->
-            match Hashtbl.find kwnames key with
-            | None ->
-              Hashtbl.set kwnames ~key ~data:true;
-              true
-            | Some true -> false
-            | Some false ->
-              value_errorf "unexpected keyword argument %s set by positional argument" key)
-        in
-        remaining_kwargs, { state with after_star_kwargs = true }
+    match t with
+    | Return a -> a, state
+    | Map (t, f) ->
+      let v, state = loop t ~state in
+      f v, state
+    | Both (t, t') ->
+      let v, state = loop t ~state in
+      let v', state = loop t' ~state in
+      (v, v'), state
+    | Arg { name; of_python; docstring = _; kind = `positional } ->
+      if state.after_star_args
+      then value_errorf "positional argument after *args (%s)" name;
+      let pos = state.pos in
+      if pos >= Array.length args
+      then
+        value_errorf
+          "not enough arguments (got %d, expected %s)"
+          (Array.length args)
+          (positional_arguments () |> String.concat ~sep:", ");
+      try_of_python args.(pos) ~of_python ~name, { state with pos = pos + 1 }
+    | Opt_arg { name; of_python; docstring = _ } ->
+      if state.after_star_kwargs
+      then value_errorf "keyword argument after **kwargs (%s)" name;
+      check_and_add_kwnames name;
+      let v = Map.find kwargs name in
+      Option.map v ~f:(try_of_python ~of_python ~name), state
+    | Arg { name; of_python; docstring = _; kind = `keyword default } ->
+      if state.after_star_kwargs
+      then value_errorf "keyword argument after **kwargs (%s)" name;
+      check_and_add_kwnames name;
+      (match Map.find kwargs name with
+       | Some v -> try_of_python v ~of_python ~name, state
+       | None ->
+         (match default with
+          | Some default -> default, state
+          | None -> value_errorf "missing keyword argument: %s" name))
+    | Arg { name; of_python; docstring = _; kind = `positional_or_keyword default } ->
+      let pos = state.pos in
+      (match pos >= Array.length args with
+       | false ->
+         (* use positional args *)
+         check_and_add_kwnames name ~is_kwarg:false;
+         (* only check for name conflict, since we don't consume the name in kwargs *)
+         try_of_python args.(pos) ~of_python ~name, { state with pos = pos + 1 }
+       | true ->
+         (* use keyword args *)
+         if state.after_star_kwargs
+         then value_errorf "positional-or-keyword argument after **kwargs (%s)" name;
+         check_and_add_kwnames name;
+         (match Map.find kwargs name with
+          | Some v -> try_of_python v ~of_python ~name, state
+          | None ->
+            (match default with
+             | Some default -> default, state
+             | None -> value_errorf "missing keyword argument: %s" name)))
+    | Star_args _docstring ->
+      if state.after_star_args then value_errorf "multiple *args";
+      let total_args_len = Array.length args in
+      let args =
+        Array.sub args ~pos:state.pos ~len:(Array.length args - state.pos)
+        |> Array.to_list
+      in
+      args, { state with pos = total_args_len; after_star_args = true }
+    | Star_kwargs _docstring ->
+      if state.after_star_kwargs then value_errorf "multiple **kwargs";
+      let remaining_kwargs =
+        Map.filter_keys kwargs ~f:(fun key ->
+          match Hashtbl.find kwnames key with
+          | None ->
+            Hashtbl.set kwnames ~key ~data:true;
+            true
+          | Some true -> false
+          | Some false ->
+            value_errorf "unexpected keyword argument %s set by positional argument" key)
+      in
+      remaining_kwargs, { state with after_star_kwargs = true }
   in
   let v, final_state = loop t ~state:State.init in
   Map.iter_keys kwargs ~f:(fun key ->
@@ -284,25 +284,25 @@ let params_docstring t =
   let star_kwargs_docstring doc = sprintf ":param other keyword args: %s" doc in
   let rec loop : type a. a t -> pos:int -> _ list * int =
     fun t ~pos ->
-      match t with
-      | Return _ -> [], pos
-      | Map (t, _) -> loop t ~pos
-      | Both (t1, t2) ->
-        let params1, pos = loop t1 ~pos in
-        let params2, pos = loop t2 ~pos in
-        params1 @ params2, pos
-      | Arg ({ kind = `positional; _ } as arg) -> [ `pos (arg_docstring arg ~pos) ], pos + 1
-      | Arg ({ kind = `keyword None; _ } as arg) ->
-        [ `kw_mandatory (arg_docstring arg ~pos) ], pos
-      | Arg ({ kind = `keyword (Some _); _ } as arg) ->
-        [ `kw_opt (arg_docstring arg ~pos) ], pos
-      | Arg ({ kind = `positional_or_keyword _; _ } as arg) ->
-        [ `pos (arg_docstring arg ~pos) ], pos + 1
-      | Opt_arg opt_arg -> [ `kw_opt (opt_arg_docstring opt_arg) ], pos
-      | Star_args doc ->
-        (* There should be no other positional arg past this one *)
-        [ `other (star_args_docstring doc) ], Int.max_value_30_bits
-      | Star_kwargs doc -> [ `other (star_kwargs_docstring doc) ], pos
+    match t with
+    | Return _ -> [], pos
+    | Map (t, _) -> loop t ~pos
+    | Both (t1, t2) ->
+      let params1, pos = loop t1 ~pos in
+      let params2, pos = loop t2 ~pos in
+      params1 @ params2, pos
+    | Arg ({ kind = `positional; _ } as arg) -> [ `pos (arg_docstring arg ~pos) ], pos + 1
+    | Arg ({ kind = `keyword None; _ } as arg) ->
+      [ `kw_mandatory (arg_docstring arg ~pos) ], pos
+    | Arg ({ kind = `keyword (Some _); _ } as arg) ->
+      [ `kw_opt (arg_docstring arg ~pos) ], pos
+    | Arg ({ kind = `positional_or_keyword _; _ } as arg) ->
+      [ `pos (arg_docstring arg ~pos) ], pos + 1
+    | Opt_arg opt_arg -> [ `kw_opt (opt_arg_docstring opt_arg) ], pos
+    | Star_args doc ->
+      (* There should be no other positional arg past this one *)
+      [ `other (star_args_docstring doc) ], Int.max_value_30_bits
+    | Star_kwargs doc -> [ `other (star_kwargs_docstring doc) ], pos
   in
   let params, _pos = loop t ~pos:0 in
   let params =
