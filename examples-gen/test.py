@@ -13,6 +13,7 @@ ocaml = PyDLL(ocaml_library, RTLD_GLOBAL)
 argv_t = c_char_p * 2
 argv = argv_t(ocaml_library.encode("utf-8"), None)
 ocaml.caml_startup(argv)
+ocaml.pyml_return_to_python()
 
 import odate
 

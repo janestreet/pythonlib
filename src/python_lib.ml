@@ -5,6 +5,7 @@ module Defunc = Defunc
 module Gen = Gen
 module Module_env = Module_env
 module Py_module = Py_module
+module Py_traceback = Py_traceback
 module Py_typerep = Py_typerep
 module Type = Type
 

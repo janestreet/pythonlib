@@ -2,7 +2,8 @@
  (libraries base core expect_test_helpers_core.expect_test_helpers_base
   compiler-libs.common pyml stdio typerep)
  (preprocess
-  (pps ppx_compare ppx_expect ppx_here ppx_let ppx_python ppx_string)))
+  (pps ppx_bin_prot ppx_compare ppx_expect ppx_here ppx_let ppx_python
+   ppx_sexp_conv ppx_string)))
 
 (ocamllex type_lexer)
 

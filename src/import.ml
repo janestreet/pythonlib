@@ -54,14 +54,6 @@ let get_class p =
 let value_error str = raise (Py.Err (ValueError, str))
 let value_errorf fmt = Printf.ksprintf value_error fmt
 
-let protect_python ~f =
-  try f () with
-  | Py.Err _ as pyerr -> raise pyerr
-  | exn ->
-    let msg = Printf.sprintf "ocaml error %s" (Exn.to_string_mach exn) in
-    raise (Py.Err (ValueError, msg))
-;;
-
 let get_from_builtins =
   let cache = Hashtbl.create (module String) in
   fun str ->

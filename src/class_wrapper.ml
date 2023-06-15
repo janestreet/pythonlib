@@ -178,20 +178,17 @@ let make ?to_string_repr ?to_string ?eq ?init ?(fields = []) name ~methods =
         match (fn : _ Method.fn) with
         | No_keywords fn ->
           Py.Callable.of_function ~name ?docstring (fun args ->
-            protect_python ~f:(fun () ->
-              let self, args = self_and_args args in
-              fn ~self:(unwrap_exn t self, self) ~args))
+            let self, args = self_and_args args in
+            fn ~self:(unwrap_exn t self, self) ~args)
         | No_keywords_raw fn ->
           Py.Callable.of_function ~name ?docstring (fun args ->
-            protect_python ~f:(fun () ->
-              let self, args = self_and_args args in
-              fn ~self ~args))
+            let self, args = self_and_args args in
+            fn ~self ~args)
         | With_keywords fn ->
           Py.Callable.of_function_with_keywords ~name ?docstring (fun args keywords ->
-            protect_python ~f:(fun () ->
-              let self, args = self_and_args args in
-              let keywords = Py_module.keywords_of_python keywords |> Or_error.ok_exn in
-              fn ~self:(unwrap_exn t self, self) ~args ~keywords))
+            let self, args = self_and_args args in
+            let keywords = Py_module.keywords_of_python keywords |> Or_error.ok_exn in
+            fn ~self:(unwrap_exn t self, self) ~args ~keywords)
       in
       name, fn)
   in

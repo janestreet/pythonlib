@@ -280,8 +280,8 @@ let params_docstring t =
     ]
     |> String.concat ~sep:"\n"
   in
-  let star_args_docstring doc = sprintf ":param other args: %s" doc in
-  let star_kwargs_docstring doc = sprintf ":param other keyword args: %s" doc in
+  let star_args_docstring doc = sprintf ":param args: (variadic args) %s" doc in
+  let star_kwargs_docstring doc = sprintf ":param kwargs: %s" doc in
   let rec loop : type a. a t -> pos:int -> _ list * int =
     fun t ~pos ->
     match t with
@@ -805,9 +805,9 @@ module Param = struct
       :param a3: (mandatory keyword) keyword a3
       :type a3: int
 
-      :param other args: star_args
+      :param args: (variadic args) star_args
 
-      :param other keyword args: star_kwargs |}]
+      :param kwargs: star_kwargs |}]
   ;;
 
   let%expect_test "test positional-or-keyword argument (out-of-order special case)" =
