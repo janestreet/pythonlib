@@ -51,6 +51,13 @@ let get_class p =
     Option.map (Py.Object.get_attr_string cls "__name__") ~f:Py.String.to_string)
 ;;
 
+let get_class_exn p =
+  (* In theory, this should never raise as all python objects have a "__class__"
+     attribute. *)
+  let cls = Py.Object.find_attr_string p "__class__" in
+  Py.Object.find_attr_string cls "__name__" |> Py.String.to_string
+;;
+
 let value_error str = raise (Py.Err (ValueError, str))
 let value_errorf fmt = Printf.ksprintf value_error fmt
 
@@ -247,6 +254,7 @@ let numpy = lazy (Option.try_with (fun () -> Py.Import.import_module "numpy"))
 let datetime = lazy (Option.try_with (fun () -> Py.Import.import_module "datetime"))
 let pathlib = lazy (Py.Import.import_module "pathlib")
 let path_cls = lazy (Py.Module.get (Lazy.force pathlib) "Path")
+let pyarrow = lazy (Option.try_with (fun () -> Py.Import.import_module "pyarrow"))
 
 let pd_series =
   lazy (Lazy.force pandas |> Option.map ~f:(fun pd -> Py.Module.get pd "Series"))

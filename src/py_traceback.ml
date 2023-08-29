@@ -3,14 +3,44 @@ open! Core
 include Py.Traceback
 
 module Unstable = struct
-  type nonrec frame = frame =
-    { filename : string
-    ; function_name : string
-    ; line_number : int
-    }
-  [@@deriving bin_io, sexp]
+  module Frame = struct
+    module Serializable = struct
+      type t =
+        { filename : string
+        ; function_name : string
+        ; line_number : int
+        }
+      [@@deriving bin_io, sexp]
+    end
 
-  type t = frame list [@@deriving bin_io, sexp]
+    type t = frame =
+      { filename : string
+      ; function_name : string
+      ; line_number : int
+      ; py_frame : Py.Object.t option
+      }
+
+    module Conv = struct
+      type nonrec t = t
+
+      let of_binable { Serializable.filename; function_name; line_number } =
+        { filename; function_name; line_number; py_frame = None }
+      ;;
+
+      let to_binable { filename; function_name; line_number; py_frame = _ } =
+        { Serializable.filename; function_name; line_number }
+      ;;
+
+      let caller_identity = Bin_prot.Shape.Uuid.of_string "Py_traceback"
+    end
+
+    include Binable.Of_binable_with_uuid (Serializable) (Conv)
+
+    let t_of_sexp = Fn.compose Conv.of_binable Serializable.t_of_sexp
+    let sexp_of_t = Fn.compose Serializable.sexp_of_t Conv.to_binable
+  end
+
+  type t = Frame.t list [@@deriving bin_io, sexp]
 end
 
 let raise_py_err_with_backtrace ?(unwrap_more = fun _ -> None) ?backtrace exn =
@@ -20,6 +50,7 @@ let raise_py_err_with_backtrace ?(unwrap_more = fun _ -> None) ?backtrace exn =
         { Py.Traceback.filename = "exn.ml"
         ; function_name = Printf.sprintf "reraise<%s>" reraised
         ; line_number = 0
+        ; py_frame = None
         }
       in
       loop ([ frame ] :: acc_traceback) exn

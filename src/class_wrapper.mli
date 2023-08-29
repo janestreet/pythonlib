@@ -66,4 +66,5 @@ val register_in_module : 'a t -> Py_module.t -> unit
 val clear_content : 'a t -> pyobject -> unit
 val set_content : 'a t -> pyobject -> 'a -> unit
 val cls_object : 'a t -> pyobject
+val name : 'a t -> string
 val is_instance : 'a t -> pyobject -> bool

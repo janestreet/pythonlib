@@ -7,13 +7,7 @@ open! Core
 include module type of Py.Traceback
 
 module Unstable : sig
-  type nonrec frame = frame =
-    { filename : string
-    ; function_name : string
-    ; line_number : int
-    }
-  [@@deriving bin_io, sexp]
-
+  (** Serialization (bin_prot and sexp) are implemented so that the raw frame python objects are dropped. *)
   type nonrec t = t [@@deriving bin_io, sexp]
 end
 
