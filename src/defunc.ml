@@ -317,8 +317,8 @@ let params_docstring t =
       | `kw_opt _, `kw_mandatory _ -> 1
       | _ -> 0)
     |> List.map ~f:(function
-      | `pos str | `pos_or_kw str | `kw_mandatory str | `kw_opt str | `other str ->
-        str)
+         | `pos str | `pos_or_kw str | `kw_mandatory str | `kw_opt str | `other str ->
+         str)
   in
   if List.is_empty params then None else String.concat params ~sep:"\n\n" |> Option.some
 ;;
@@ -335,8 +335,8 @@ module Param = struct
     Of_python.create
       ~type_name:(Printf.sprintf "%s | %s" o1.type_name o2.type_name)
       ~conv:(fun pyobject ->
-        try Either.First (o1.conv pyobject) with
-        | _ -> Second (o2.conv pyobject))
+      try Either.First (o1.conv pyobject) with
+      | _ -> Second (o2.conv pyobject))
   ;;
 
   let map (o : _ Of_python.t) ~f =
@@ -439,9 +439,9 @@ module Param = struct
     Of_python.create
       ~type_name:(Printf.sprintf "Tuple[%s, %s]" o1.type_name o2.type_name)
       ~conv:(fun pyobject ->
-        check_tuple_len pyobject ~expected_length:2;
-        let p1, p2 = Py.Tuple.to_tuple2 pyobject in
-        o1.conv p1, o2.conv p2)
+      check_tuple_len pyobject ~expected_length:2;
+      let p1, p2 = Py.Tuple.to_tuple2 pyobject in
+      o1.conv p1, o2.conv p2)
   ;;
 
   let triple (o1 : _ Of_python.t) (o2 : _ Of_python.t) (o3 : _ Of_python.t) =
@@ -449,16 +449,16 @@ module Param = struct
       ~type_name:
         (Printf.sprintf "Tuple[%s, %s, %s]" o1.type_name o2.type_name o3.type_name)
       ~conv:(fun pyobject ->
-        check_tuple_len pyobject ~expected_length:3;
-        let p1, p2, p3 = Py.Tuple.to_tuple3 pyobject in
-        o1.conv p1, o2.conv p2, o3.conv p3)
+      check_tuple_len pyobject ~expected_length:3;
+      let p1, p2, p3 = Py.Tuple.to_tuple3 pyobject in
+      o1.conv p1, o2.conv p2, o3.conv p3)
   ;;
 
   let quadruple
-        (o1 : _ Of_python.t)
-        (o2 : _ Of_python.t)
-        (o3 : _ Of_python.t)
-        (o4 : _ Of_python.t)
+    (o1 : _ Of_python.t)
+    (o2 : _ Of_python.t)
+    (o3 : _ Of_python.t)
+    (o4 : _ Of_python.t)
     =
     Of_python.create
       ~type_name:
@@ -469,17 +469,17 @@ module Param = struct
            o3.type_name
            o4.type_name)
       ~conv:(fun pyobject ->
-        check_tuple_len pyobject ~expected_length:3;
-        let p1, p2, p3, p4 = Py.Tuple.to_tuple4 pyobject in
-        o1.conv p1, o2.conv p2, o3.conv p3, o4.conv p4)
+      check_tuple_len pyobject ~expected_length:3;
+      let p1, p2, p3, p4 = Py.Tuple.to_tuple4 pyobject in
+      o1.conv p1, o2.conv p2, o3.conv p3, o4.conv p4)
   ;;
 
   let quintuple
-        (o1 : _ Of_python.t)
-        (o2 : _ Of_python.t)
-        (o3 : _ Of_python.t)
-        (o4 : _ Of_python.t)
-        (o5 : _ Of_python.t)
+    (o1 : _ Of_python.t)
+    (o2 : _ Of_python.t)
+    (o3 : _ Of_python.t)
+    (o4 : _ Of_python.t)
+    (o5 : _ Of_python.t)
     =
     Of_python.create
       ~type_name:
@@ -491,29 +491,29 @@ module Param = struct
            o4.type_name
            o5.type_name)
       ~conv:(fun pyobject ->
-        check_tuple_len pyobject ~expected_length:3;
-        let p1, p2, p3, p4, p5 = Py.Tuple.to_tuple5 pyobject in
-        o1.conv p1, o2.conv p2, o3.conv p3, o4.conv p4, o5.conv p5)
+      check_tuple_len pyobject ~expected_length:3;
+      let p1, p2, p3, p4, p5 = Py.Tuple.to_tuple5 pyobject in
+      o1.conv p1, o2.conv p2, o3.conv p3, o4.conv p4, o5.conv p5)
   ;;
 
   let option (o : _ Of_python.t) =
     Of_python.create
       ~type_name:(Printf.sprintf "Optional[%s]" o.type_name)
       ~conv:(fun python_value ->
-        if Py.is_null python_value || Py.is_none python_value
-        then None
-        else Some (o.conv python_value))
+      if Py.is_null python_value || Py.is_none python_value
+      then None
+      else Some (o.conv python_value))
   ;;
 
   let list (o : _ Of_python.t) =
     Of_python.create
       ~type_name:(Printf.sprintf "List[%s]" o.type_name)
       ~conv:(fun python_value ->
-        (match Py.Type.get python_value with
-         | List | Tuple -> ()
-         | otherwise ->
-           Printf.failwithf "not a list or a tuple (%s)" (Py.Type.name otherwise) ());
-        py_list_to_list_map_safe o.conv python_value)
+      (match Py.Type.get python_value with
+       | List | Tuple -> ()
+       | otherwise ->
+         Printf.failwithf "not a list or a tuple (%s)" (Py.Type.name otherwise) ());
+      py_list_to_list_map_safe o.conv python_value)
   ;;
 
   let list_or_iter (o : _ Of_python.t) =

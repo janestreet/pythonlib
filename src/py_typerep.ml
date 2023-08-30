@@ -297,10 +297,10 @@ let%expect_test "obj" =
   [%expect {| -2.71828 3.1415 |}];
   print_list
     (fun (f, i, o) ->
-       let o =
-         Option.value_map o ~default:"()" ~f:(fun (s, b) -> Printf.sprintf "%s %b" s b)
-       in
-       Printf.sprintf "(%f %i %s)" f i o)
+      let o =
+        Option.value_map o ~default:"()" ~f:(fun (s, b) -> Printf.sprintf "%s %b" s b)
+      in
+      Printf.sprintf "(%f %i %s)" f i o)
     (roundtrip
        (List (Tuple (T3 (Float, Int, Option (Tuple (T2 (String, Bool)))))))
        [ 3.14, 42, None; 2.71828, 1337, Some ("test", true) ]);
@@ -383,8 +383,8 @@ let%expect_test "parse-type" =
     ; "(((int array list) option)) array -> (((string array)) array)"
     ]
     ~f:(fun index str ->
-      let (T t) = parse str in
-      Stdio.printf "%d %s\n%!" index (to_ocaml t));
+    let (T t) = parse str in
+    Stdio.printf "%d %s\n%!" index (to_ocaml t));
   [%expect
     {|
         0 unit

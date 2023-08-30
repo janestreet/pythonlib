@@ -2,7 +2,6 @@ open Base
 open Poly
 include Ppx_python_runtime
 
-
 type pyobject = Pytypes.pyobject
 
 let python_of_pyobject = Fn.id
@@ -24,16 +23,16 @@ let py_list_to_array_map_safe f pyobject =
 ;;
 
 module Of_pythonable (Pythonable : sig
-    type t [@@deriving python]
-  end)
-    (Conv : sig
-       type pythonable
-       type t
+  type t [@@deriving python]
+end)
+(Conv : sig
+  type pythonable
+  type t
 
-       val to_pythonable : t -> pythonable
-       val of_pythonable : pythonable -> t
-     end
-     with type pythonable := Pythonable.t) : sig
+  val to_pythonable : t -> pythonable
+  val of_pythonable : pythonable -> t
+end
+with type pythonable := Pythonable.t) : sig
   type t [@@deriving python]
 end
 with type t := Conv.t = struct
@@ -222,8 +221,8 @@ module One_or_tuple_or_list_or_error = struct
        | Some p ->
          py_list_to_list_map_safe
            (fun p ->
-              Or_error_python.t_of_python a_of_python p
-              |> Or_error.tag ~tag:("trying to parse as " ^ type_name))
+             Or_error_python.t_of_python a_of_python p
+             |> Or_error.tag ~tag:("trying to parse as " ^ type_name))
            p
        | None -> failwith "incorrect python type")
   ;;

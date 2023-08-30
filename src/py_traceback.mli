@@ -1,6 +1,5 @@
 open! Core
 
-
 (** [Py_traceback] is a wrapper around [Py.Traceback] which provides more functionalities
     to Python/OCaml traceback manipulation. *)
 

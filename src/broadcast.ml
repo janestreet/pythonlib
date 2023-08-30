@@ -30,7 +30,7 @@ module T = struct
         { values : 'a list
         ; list_arg_names : string Nonempty_list.t
         ; index : pyobject option
-        (* This is [Some _] if [t] was created from a pandas series, else [None]. *)
+            (* This is [Some _] if [t] was created from a pandas series, else [None]. *)
         }
 
   let map t ~f =
@@ -92,12 +92,12 @@ module T = struct
   ;;
 
   include Applicative.Make (struct
-      type nonrec 'a t = 'a t
+    type nonrec 'a t = 'a t
 
-      let return x = Single_value x
-      let apply t_f t = merge t t_f |> map ~f:(fun (f, x) -> f x)
-      let map = `Custom map
-    end)
+    let return x = Single_value x
+    let apply t_f t = merge t t_f |> map ~f:(fun (f, x) -> f x)
+    let map = `Custom map
+  end)
 end
 
 include T

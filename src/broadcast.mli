@@ -15,8 +15,8 @@ include Applicative.S with type 'a t := 'a t
 
 include
   Applicative.Let_syntax
-  with type 'a t := 'a t
-   and module Open_on_rhs_intf := Open_on_rhs_intf
+    with type 'a t := 'a t
+     and module Open_on_rhs_intf := Open_on_rhs_intf
 
 val create : pyobject -> (pyobject -> 'a) -> arg_name:string -> 'a t
 val constant : 'a -> 'a t

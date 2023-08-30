@@ -235,7 +235,7 @@ let make ?to_string_repr ?to_string ?eq ?init ?(fields = []) name ~methods =
   in
   let cls_object =
     if List.exists fields ~f:(fun (field_name, _) ->
-      String.equal field_name content_field)
+         String.equal field_name content_field)
     then
       value_errorf
         "'%s' is not an acceptable field name because it is reserved for internal use by \

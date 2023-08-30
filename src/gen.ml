@@ -69,7 +69,7 @@ module Deprecated_handling = struct
   let is_deprecated (value_description : Types.value_description) =
     value_description.val_attributes
     |> List.exists ~f:(fun { Parsetree.attr_name; _ } ->
-      String.equal attr_name.txt "deprecated" || String.equal attr_name.txt "legacy")
+         String.equal attr_name.txt "deprecated" || String.equal attr_name.txt "legacy")
   ;;
 
   let python_name s ~is_deprecated =
@@ -125,21 +125,21 @@ let pr outc ~indent =
 let uncurrify type_ =
   let args, result = Type.uncurrify type_ in
   if Type.contains_arrow result
-  || List.exists args ~f:(fun (_, arg) -> Type.contains_arrow arg)
+     || List.exists args ~f:(fun (_, arg) -> Type.contains_arrow arg)
   then Or_error.error_string "arrow in argument or result"
   else Ok (args, result)
 ;;
 
 let write_function
-      ~indent
-      ~outc
-      ~python_name
-      ~env
-      ~type_
-      ~args
-      ~all_types
-      ~ocaml_name
-      ~result
+  ~indent
+  ~outc
+  ~python_name
+  ~env
+  ~type_
+  ~args
+  ~all_types
+  ~ocaml_name
+  ~result
   =
   let pr s = pr outc ~indent s in
   let path_str = Module_env.path env |> Module_env.Path.names |> String.concat ~sep:"." in

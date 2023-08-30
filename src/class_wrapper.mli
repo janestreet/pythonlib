@@ -23,7 +23,7 @@ module Method : sig
   val create
     :  ?docstring:string
     -> string
-    (** In the [methods] callbacks, [self] contains both the embeded ocaml
+       (** In the [methods] callbacks, [self] contains both the embeded ocaml
         value as well as the Python wrapper object. *)
     -> (self:'a * pyobject -> args:pyobject list -> pyobject)
     -> 'a t

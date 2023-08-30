@@ -59,16 +59,16 @@ let exn_to_string exn ~code =
       | _ -> false)
     |> String.split ~on:'\n'
     |> List.filter_mapi ~f:(fun lnum line ->
-      let lnum = 1 + lnum in
-      if min_line_number <= lnum && lnum <= max_line_number
-      then (
-        let marker =
-          if location.loc_start.pos_lnum <= lnum && lnum <= location.loc_end.pos_lnum
-          then ">"
-          else " "
-        in
-        Some (Printf.sprintf "%s%3d: %s" marker lnum line))
-      else None)
+         let lnum = 1 + lnum in
+         if min_line_number <= lnum && lnum <= max_line_number
+         then (
+           let marker =
+             if location.loc_start.pos_lnum <= lnum && lnum <= location.loc_end.pos_lnum
+             then ">"
+             else " "
+           in
+           Some (Printf.sprintf "%s%3d: %s" marker lnum line))
+         else None)
     |> String.concat ~sep:"\n"
     |> F.pp_print_string ppf;
     F.pp_print_newline ppf ();
@@ -155,10 +155,10 @@ let register_module ~module_name =
     modl
     "get"
     (function
-      | [| str |] -> Py.String.to_string str |> toploop_eval_and_get_no_type
-      | [| typerep; str |] ->
-        toploop_eval_and_get (Py.String.to_string typerep) (Py.String.to_string str)
-      | _ -> raise (Py.Err (SyntaxError, "expected one or two arguments")))
+     | [| str |] -> Py.String.to_string str |> toploop_eval_and_get_no_type
+     | [| typerep; str |] ->
+       toploop_eval_and_get (Py.String.to_string typerep) (Py.String.to_string str)
+     | _ -> raise (Py.Err (SyntaxError, "expected one or two arguments")))
     ~docstring:
       {|
     Evaluates an ocaml expression and returns the result as a python object.
