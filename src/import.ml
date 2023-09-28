@@ -262,3 +262,12 @@ let pd_series =
 let pd_dataframe =
   lazy (Lazy.force pandas |> Option.map ~f:(fun pd -> Py.Module.get pd "DataFrame"))
 ;;
+
+let issue_deprecation_warning msg =
+  let warnings = Py.Import.import_module "warnings" in
+  let deprecation_warning = get_from_builtins "DeprecationWarning" in
+  let (_ : pyobject) =
+    Py.Module.get_function warnings "warn" [| python_of_string msg; deprecation_warning |]
+  in
+  ()
+;;
