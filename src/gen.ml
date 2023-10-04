@@ -335,7 +335,7 @@ let write_ml outc (cmi_infos : Cmi_format.cmi_infos) =
            pr "end;;";
            Some (Module { ml_module_name = module_name; path = Module_env.path env }))
          else None
-       | Mty_ident _ | Mty_functor _ | Mty_alias _ -> None)
+       | Mty_ident _ | Mty_functor _ | Mty_alias _ | Mty_strengthen _ -> None)
     | Sig_modtype (_ident, _, _)
     | Sig_class (_ident, _, _, _)
     | Sig_class_type (_ident, _, _, _) -> None
