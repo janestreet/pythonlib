@@ -182,7 +182,7 @@ let apply_ (type a) (t : a t) args kwargs =
           | None ->
             (match default with
              | Some default -> default, state
-             | None -> value_errorf "missing keyword argument: %s" name)))
+             | None -> value_errorf "missing positional-or-keyword argument: %s" name)))
     | Star_args _docstring ->
       if state.after_star_args then value_errorf "multiple *args";
       let total_args_len = Array.length args in
@@ -201,7 +201,7 @@ let apply_ (type a) (t : a t) args kwargs =
             true
           | Some true -> false
           | Some false ->
-            value_errorf "unexpected keyword argument %s set by positional argument" key)
+            value_errorf "keyword argument '%s' already set by positional argument" key)
       in
       remaining_kwargs, { state with after_star_kwargs = true }
   in
@@ -211,7 +211,7 @@ let apply_ (type a) (t : a t) args kwargs =
     | None -> value_errorf "unexpected keyword argument %s" key
     | Some true -> ()
     | Some false ->
-      value_errorf "unexpected keyword argument %s set by positional argument" key);
+      value_errorf "keyword argument '%s' already set by positional argument" key);
   if final_state.pos <> Array.length args
   then
     value_errorf
@@ -331,6 +331,10 @@ let params_docstring ?docstring t =
 ;;
 
 module Param = struct
+  let map (o : _ Of_python.t) ~f =
+    Of_python.create ~type_name:o.type_name ~conv:(fun pyobject -> o.conv pyobject |> f)
+  ;;
+
   let choice (o1 : _ Of_python.t) (o2 : _ Of_python.t) =
     Of_python.create
       ~type_name:(Printf.sprintf "%s | %s" o1.type_name o2.type_name)
@@ -339,11 +343,9 @@ module Param = struct
       | _ -> Second (o2.conv pyobject))
   ;;
 
-  let map (o : _ Of_python.t) ~f =
-    Of_python.create ~type_name:o.type_name ~conv:(fun pyobject -> o.conv pyobject |> f)
-  ;;
+  let choice' o1 o2 = choice o1 o2 |> map ~f:Either.value
 
-  let positional name of_python ~docstring =
+  let positional_only name of_python ~docstring =
     check_valid_arg_name name;
     Arg { name; of_python; docstring; kind = `positional }
   ;;
@@ -550,8 +552,8 @@ module Param = struct
       ~conv:(fun pyobject -> Broadcast.create pyobject o.conv ~arg_name)
   ;;
 
-  let positional_broadcast arg_name of_python =
-    positional arg_name (with_broadcast of_python ~arg_name)
+  let positional_or_keyword_broadcast arg_name of_python =
+    positional_or_keyword arg_name (with_broadcast of_python ~arg_name)
   ;;
 
   let keyword_broadcast ?default arg_name of_python =
@@ -633,11 +635,36 @@ module Param = struct
       to_numpy_array ~dims:3 kind layout p |> Bigarray.array3_of_genarray)
   ;;
 
+  let array_of_bigarray (kind : _ Bigarray.kind) to_array_value =
+    numpy_array1 kind C_layout
+    |> map ~f:(fun bigarray ->
+         Array.init (Bigarray.Array1.dim bigarray) ~f:(fun i ->
+           (* [unsafe_get] should be safe here, but not opting for it because pyocaml is not
+           performance critical *)
+           Bigarray.Array1.get bigarray i |> to_array_value))
+  ;;
+
+  let int_numpy_array_1d_arg =
+    let nativeint = array_of_bigarray Nativeint Nativeint.to_int_exn in
+    let int64 = array_of_bigarray Int64 Int64.to_int_exn in
+    let int32 = array_of_bigarray Int32 Int32.to_int_exn in
+    choice' (choice' nativeint int64) int32
+  ;;
+
+  let float_numpy_array_1d_arg =
+    let float64 = array_of_bigarray Float64 Fn.id in
+    let float32 = array_of_bigarray Float32 Fn.id in
+    choice' float64 float32
+  ;;
+
+  let int_sequence_arg = choice' int_numpy_array_1d_arg (array_or_iter int)
+  let float_sequence_arg = choice' float_numpy_array_1d_arg (array_or_iter float)
+
   let%expect_test "test positional argument" =
     if Py.is_initialized () |> not then Py.initialize ();
     let defunc =
       let open Let_syntax in
-      let%map a1 = positional "a1" int ~docstring:"positional a1" in
+      let%map a1 = positional_only "a1" int ~docstring:"positional a1" in
       fun () -> a1
     in
     apply defunc [| Py.Int.of_int 1 |] Core.String.Map.empty
@@ -689,7 +716,7 @@ module Param = struct
     (* Common use-cases *)
     let defunc =
       let open Let_syntax in
-      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      let%map a1 = positional_only "a1" int ~docstring:"positional a1"
       and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
       and a3 = positional_or_keyword "a3" int ~docstring:"positional-or-keyword a3"
       and a4 = keyword "a4" int ~docstring:"keyword a4" in
@@ -717,7 +744,7 @@ module Param = struct
     (* Common use-cases *)
     let defunc =
       let open Let_syntax in
-      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      let%map a1 = positional_only "a1" int ~docstring:"positional a1"
       and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
       and a3 = keyword "a3" int ~docstring:"keyword a3"
       and star_args = star_args ~docstring:"star_args"
@@ -756,7 +783,7 @@ module Param = struct
     (* Common use-cases *)
     let defunc =
       let open Let_syntax in
-      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      let%map a1 = positional_only "a1" int ~docstring:"positional a1"
       and a2 =
         positional_or_keyword "a2" int ~default:22 ~docstring:"positional-or-keyword a2"
       and a3 = keyword "a3" int ~docstring:"keyword a3"
@@ -815,9 +842,9 @@ module Param = struct
     (* Success only when there are enough positional arguments *)
     let defunc =
       let open Let_syntax in
-      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      let%map a1 = positional_only "a1" int ~docstring:"positional a1"
       and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
-      and a3 = positional "a3" int ~docstring:"positional a3" in
+      and a3 = positional_only "a3" int ~docstring:"positional a3" in
       fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a3#Int}"]
     in
     apply
@@ -832,9 +859,9 @@ module Param = struct
     (* positional argument prioritizes *)
     let defunc =
       let open Let_syntax in
-      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      let%map a1 = positional_only "a1" int ~docstring:"positional a1"
       and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
-      and a3 = positional "a3" int ~docstring:"positional a3" in
+      and a3 = positional_only "a3" int ~docstring:"positional a3" in
       fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a3#Int}"]
     in
     Expect_test_helpers_base.require_does_raise [%here] (fun () ->
@@ -843,29 +870,29 @@ module Param = struct
         [| Py.Int.of_int 1; Py.Int.of_int 2; Py.Int.of_int 3 |]
         (Core.String.Map.singleton "a2" (Py.Int.of_int 4)));
     [%expect
-      {| ("Pyml__Py.Err(24, \"unexpected keyword argument a2 set by positional argument\")") |}]
+      {| ("Pyml__Py.Err(24, \"keyword argument 'a2' already set by positional argument\")") |}]
   ;;
 
   let%expect_test "test positional-or-keyword argument (name conflict)" =
     if Py.is_initialized () |> not then Py.initialize ();
     (* name conflict *)
-    let defunc =
-      let open Let_syntax in
-      let%map a1 = positional "a1" int ~docstring:"positional a1"
-      and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
-      and a2_kw = keyword "a2" int ~docstring:"keyword a2" in
-      fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a2_kw#Int}"]
-    in
-    Expect_test_helpers_base.require_does_raise [%here] (fun () ->
-      apply
-        defunc
-        [| Py.Int.of_int 1; Py.Int.of_int 2; Py.Int.of_int 3 |]
-        (Core.String.Map.singleton "a2" (Py.Int.of_int 4)));
+    (let defunc =
+       let open Let_syntax in
+       let%map a1 = positional_only "a1" int ~docstring:"positional a1"
+       and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
+       and a2_kw = keyword "a2" int ~docstring:"keyword a2" in
+       fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a2_kw#Int}"]
+     in
+     Expect_test_helpers_base.require_does_raise [%here] (fun () ->
+       apply
+         defunc
+         [| Py.Int.of_int 1; Py.Int.of_int 2; Py.Int.of_int 3 |]
+         (Core.String.Map.singleton "a2" (Py.Int.of_int 4))));
     [%expect {| ("Pyml__Py.Err(24, \"multiple keyword arguments with name a2\")") |}];
     (* name conflict: different order of arguments *)
     let defunc =
       let open Let_syntax in
-      let%map a1 = positional "a1" int ~docstring:"positional a1"
+      let%map a1 = positional_only "a1" int ~docstring:"positional a1"
       and a2_kw = keyword "a2" int ~docstring:"keyword a2"
       and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2" in
       fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a2_kw#Int}"]
@@ -875,6 +902,28 @@ module Param = struct
         defunc
         [| Py.Int.of_int 1; Py.Int.of_int 2; Py.Int.of_int 3 |]
         (Core.String.Map.singleton "a2" (Py.Int.of_int 4)));
+    [%expect {| ("Pyml__Py.Err(24, \"multiple keyword arguments with name a2\")") |}];
+    (* name conflict: kwarg which is duplicated is not set *)
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = positional_only "a1" int ~docstring:"positional a1"
+      and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
+      and a2_kw = keyword "a2" int ~docstring:"keyword a2" in
+      fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a2_kw#Int}"]
+    in
+    Expect_test_helpers_base.require_does_raise [%here] (fun () ->
+      apply defunc [| Py.Int.of_int 1; Py.Int.of_int 2 |] Core.String.Map.empty);
+    [%expect {| ("Pyml__Py.Err(24, \"multiple keyword arguments with name a2\")") |}];
+    (* name conflict: kwarg with default which is duplicated is not set *)
+    let defunc =
+      let open Let_syntax in
+      let%map a1 = positional_only "a1" int ~docstring:"positional a1"
+      and a2 = positional_or_keyword "a2" int ~docstring:"positional-or-keyword a2"
+      and a2_kw = keyword "a2" int ~docstring:"keyword a2" ~default:2 in
+      fun () -> Core.print_endline [%string "%{a1#Int} %{a2#Int} %{a2_kw#Int}"]
+    in
+    Expect_test_helpers_base.require_does_raise [%here] (fun () ->
+      apply defunc [| Py.Int.of_int 1; Py.Int.of_int 2 |] Core.String.Map.empty);
     [%expect {| ("Pyml__Py.Err(24, \"multiple keyword arguments with name a2\")") |}]
   ;;
 end

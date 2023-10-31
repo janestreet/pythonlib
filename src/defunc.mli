@@ -39,8 +39,9 @@ module Param : sig
   (** [choice x y] first attempts conversion using x.conv. if that fails, it attempts y.conv *)
   val choice : 'a Of_python.t -> 'b Of_python.t -> ('a, 'b) Either.t Of_python.t
 
+  val choice' : 'a Of_python.t -> 'a Of_python.t -> 'a Of_python.t
   val map : 'a Of_python.t -> f:('a -> 'b) -> 'b Of_python.t
-  val positional : string -> 'a Of_python.t -> docstring:string -> 'a t
+  val positional_only : string -> 'a Of_python.t -> docstring:string -> 'a t
 
   val positional_or_keyword
     :  ?default:'a
@@ -52,7 +53,17 @@ module Param : sig
   val keyword : ?default:'a -> string -> 'a Of_python.t -> docstring:string -> 'a t
   val keyword_opt : string -> 'a Of_python.t -> docstring:string -> 'a option t
   val int : int Of_python.t
+
+  (** [int_sequence_arg] converts integer sequences in a fast way if possible, e.g. going
+      via numpy and bigarray if possible *)
+  val int_sequence_arg : int array Of_python.t
+
   val float : float Of_python.t
+
+  (** [float_sequence_arg] converts float sequences in a fast way if possible, e.g. going
+      via numpy and bigarray if possible *)
+  val float_sequence_arg : float array Of_python.t
+
   val bool : bool Of_python.t
   val char : char Of_python.t
   val string : string Of_python.t
@@ -102,7 +113,7 @@ module Param : sig
   val one_or_tuple_or_list_relaxed : 'a Of_python.t -> 'a Or_error.t list Of_python.t
   val with_broadcast : 'a Of_python.t -> arg_name:string -> 'a Broadcast.t Of_python.t
 
-  val positional_broadcast
+  val positional_or_keyword_broadcast
     :  string
     -> 'a Of_python.t
     -> docstring:string
