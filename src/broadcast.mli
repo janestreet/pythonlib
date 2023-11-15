@@ -34,6 +34,9 @@ val to_list : 'a t -> 'a list
 val python_of_t : 'a t -> 'b list -> to_python:('b -> pyobject) -> pyobject
 val python_of_t' : 'a t -> to_python:('a -> pyobject) -> pyobject
 
+(** Some if [t] was created from a pandas series, else [None]. *)
+val index : _ t -> pyobject option
+
 (** Creates a dataframe that maintains the original indexing of [t].
 
     This effectively calls pandas.DataFrame(data, index, **kwargs) where index is the
