@@ -129,7 +129,6 @@ let create pyobject of_python ~arg_name =
          Relevant links:
          https://stackoverflow.com/questions/21989286/why-pandas-series-return-the-element-of-my-numpy-datetime64-array-as-timestamp
          https://pandas.pydata.org/docs/reference/api/pandas.Series.values.html
-
       *)
       let values = Option.value_exn (Py.Object.get_attr_string pyobject "array") |> map in
       let index = Some (Option.value_exn (Py.Object.get_attr_string pyobject "index")) in

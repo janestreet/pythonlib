@@ -4,7 +4,7 @@ exception Error of string
 
 let newline lexbuf = Lexing.new_line lexbuf
 let error fmt =
-  Printf.kprintf (fun msg -> raise (Error msg)) fmt
+  Printf.ksprintf (fun msg -> raise (Error msg)) fmt
 }
 
 let eol = '\r'? '\n'
