@@ -38,10 +38,14 @@ let of_type_desc type_desc ~env =
     | Tpoly (_, _) -> Or_error.error_string "not handled: non-mono Tpoly"
     | Tlink e -> walk (Types.get_desc e)
     | Tsubst (e1, None) -> walk (Types.get_desc e1)
-    | Tsubst (e1, Some e2) -> walk (Ttuple [ e1; e2 ])
+    | Tsubst (e1, Some e2) -> walk (Ttuple [ None, e1; None, e2 ])
     | Ttuple es ->
       let%bind tuple =
-        List.map es ~f:(fun e -> walk (Types.get_desc e)) |> Or_error.all
+        List.map es ~f:(fun p ->
+          match p with
+          | None, e -> walk (Types.get_desc e)
+          | Some _, _ -> Or_error.error_string "labeled tuple")
+        |> Or_error.all
       in
       (match tuple with
        | [] -> Or_error.error_string "empty tuple"

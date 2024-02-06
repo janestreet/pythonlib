@@ -51,7 +51,6 @@ module Param : sig
     -> 'a t
 
   val keyword : ?default:'a -> string -> 'a Of_python.t -> docstring:string -> 'a t
-  val keyword_opt : string -> 'a Of_python.t -> docstring:string -> 'a option t
   val int : int Of_python.t
 
   (** [int_sequence_arg] converts integer sequences in a fast way if possible, e.g. going

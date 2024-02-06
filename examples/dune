@@ -1,3 +1,8 @@
-(executables (names ocaml) (preprocess (pps ppx_let ppx_python))
- (modes (byte shared_object)) (flags :standard -linkall)
+(executables
+ (names ocaml)
+ (preprocess
+  (pps ppx_let ppx_python))
+ (modes
+  (byte shared_object))
+ (flags :standard -linkall)
  (libraries base compiler-libs.toplevel pyml python_lib python_ocaml_init))
