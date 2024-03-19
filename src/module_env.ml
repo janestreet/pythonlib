@@ -101,5 +101,5 @@ let%expect_test "module-env" =
     found module-ident.u
     found .v
     cannot find w
-      |}]
+    |}]
 ;;

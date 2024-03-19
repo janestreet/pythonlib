@@ -118,6 +118,8 @@ module Param : sig
     -> docstring:string
     -> 'a Broadcast.t t
 
+  (** Convenience wrapper around [keyword] and [with_broadcast] that ensures the same
+      [arg_name] is passed to each. *)
   val keyword_broadcast
     :  ?default:'a
     -> string
@@ -126,6 +128,15 @@ module Param : sig
     -> 'a Broadcast.t t
 
   val keyword_opt_broadcast
+    :  string
+    -> 'a Of_python.t
+    -> docstring:string
+    -> 'a Broadcast.t option t
+
+  (** Works just like [keyword_opt_broadcast] but uses [keyword] instead of [keyword_opt],
+      which is deprecated. In practice, this means that this will treat [None] the same as
+      not passing in the arg, instead of failing. *)
+  val keyword_opt_broadcast'
     :  string
     -> 'a Of_python.t
     -> docstring:string

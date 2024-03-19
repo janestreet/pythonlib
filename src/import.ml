@@ -248,12 +248,39 @@ let python_eprint str =
 
 let python_eprintf fmt = Printf.ksprintf python_eprint fmt
 let builtins = lazy (Py.Module.builtins ())
-let pandas = lazy (Option.try_with (fun () -> Py.Import.import_module "pandas"))
-let numpy = lazy (Option.try_with (fun () -> Py.Import.import_module "numpy"))
-let datetime = lazy (Option.try_with (fun () -> Py.Import.import_module "datetime"))
+let pandas = lazy (Py.Import.import_module_opt "pandas")
+let numpy = lazy (Py.Import.import_module_opt "numpy")
+let datetime = lazy (Py.Import.import_module "datetime")
 let pathlib = lazy (Py.Import.import_module "pathlib")
 let path_cls = lazy (Py.Module.get (Lazy.force pathlib) "Path")
-let pyarrow = lazy (Option.try_with (fun () -> Py.Import.import_module "pyarrow"))
+let pyarrow = lazy (Py.Import.import_module_opt "pyarrow")
+
+let%test_module _ =
+  (module struct
+    let () = if not (Py.is_initialized ()) then Py.initialize ()
+
+    let does_not_exist =
+      lazy (Py.Import.import_module_opt "does_not_exist_no_really_240206")
+    ;;
+
+    let%test "Py.Import.import_module_opt on a non-existing module" =
+      match Lazy.force does_not_exist with
+      | None -> true
+      | Some (_ : pyobject) -> false
+    ;;
+
+    let%test "pathlib can be loaded" =
+      let (_ : pyobject) = Lazy.force pathlib in
+      true
+    ;;
+
+    let%test "Loading pandas doesn't raise" =
+      match Lazy.force pandas with
+      | None -> true
+      | Some (_ : pyobject) -> true
+    ;;
+  end)
+;;
 
 let pd_series =
   lazy (Lazy.force pandas |> Option.map ~f:(fun pd -> Py.Module.get pd "Series"))

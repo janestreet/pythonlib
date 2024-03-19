@@ -565,6 +565,10 @@ module Param = struct
     keyword_opt arg_name (with_broadcast of_python ~arg_name)
   ;;
 
+  let keyword_opt_broadcast' arg_name of_python =
+    keyword arg_name (option (with_broadcast of_python ~arg_name)) ~default:None
+  ;;
+
   let dict ~(key : _ Of_python.t) ~(value : _ Of_python.t) =
     Of_python.create
       ~type_name:(Printf.sprintf "Dict[%s, %s]" key.type_name value.type_name)
@@ -736,7 +740,8 @@ module Param = struct
       :type a3: int
 
       :param a4: (mandatory keyword) keyword a4
-      :type a4: int |}]
+      :type a4: int
+      |}]
   ;;
 
   let%expect_test "test positional-or-keyword argument" =
@@ -834,7 +839,8 @@ module Param = struct
 
       :param args: (variadic args) star_args
 
-      :param kwargs: star_kwargs |}]
+      :param kwargs: star_kwargs
+      |}]
   ;;
 
   let%expect_test "test positional-or-keyword argument (out-of-order special case)" =

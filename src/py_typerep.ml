@@ -387,13 +387,14 @@ let%expect_test "parse-type" =
     Stdio.printf "%d %s\n%!" index (to_ocaml t));
   [%expect
     {|
-        0 unit
-        1 int
-        2 unit -> int
-        3 (string) list -> (float) * ((bool) option)
-        4 (int) * ((string) * (int) * (bool))
-        5 ((int) * (int) * (int) * (((int) * ((string) list) * (int)) list)) option -> (int) * ((string) * (int) * (bool))
-        6 ((int) * (int) * ((int) array) * (((int) * ((string) array) * (int)) list)) option -> (string) array
-        7 ((((int) array) list) option) array -> ((string) array) array
-        8 ((((int) array) list) option) array -> ((string) array) array |}]
+    0 unit
+    1 int
+    2 unit -> int
+    3 (string) list -> (float) * ((bool) option)
+    4 (int) * ((string) * (int) * (bool))
+    5 ((int) * (int) * (int) * (((int) * ((string) list) * (int)) list)) option -> (int) * ((string) * (int) * (bool))
+    6 ((int) * (int) * ((int) array) * (((int) * ((string) array) * (int)) list)) option -> (string) array
+    7 ((((int) array) list) option) array -> ((string) array) array
+    8 ((((int) array) list) option) array -> ((string) array) array
+    |}]
 ;;
