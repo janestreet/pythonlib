@@ -45,3 +45,9 @@ print(ocaml_module.approx_pi(1000))
 `pythonlib` also handles keyword arguments as well as basic types such as
 int, float, string, list, etc.
 Further examples can be found in the `examples` directory.
+
+To compile and run examples:
+```
+sh examples/build.sh
+python3 examples/test.py
+```

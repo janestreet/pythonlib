@@ -20,7 +20,7 @@ let maybe_initialize () =
     is_initialized := true;
     Clflags.debug := true;
     Clflags.verbose := false;
-    Warnings.parse_options false "-58";
+    ignore @@ Warnings.parse_options false "-58";
     Location.formatter_for_warnings := F.err_formatter;
     Toploop.set_paths ();
     !Toploop.toplevel_startup_hook ();
@@ -111,9 +111,7 @@ let toploop_eval_and_get typerep str =
     toploop_eval
       ~verbose:false
       (Printf.sprintf "let out : %s = (%s);;" (Py_typerep.to_ocaml typerep) str);
-    let path, _, _ =
-      Env.lookup_value ~loc:dummy_loc (Lident "out") !Toploop.toplevel_env
-    in
+    let path, _ = Env.lookup_value ~loc:dummy_loc (Lident "out") !Toploop.toplevel_env in
     let obj = Toploop.eval_value_path !Toploop.toplevel_env path in
     Py_typerep.ocaml_to_python typerep (Stdlib.Obj.obj obj)
   in
@@ -123,12 +121,14 @@ let toploop_eval_and_get typerep str =
 
 let toploop_eval_and_get_no_type str =
   toploop_eval ~verbose:false (Printf.sprintf "let out = (%s);;" str);
-  let path, value_description, _mode =
+  let path, value_description =
     Env.lookup_value ~loc:dummy_loc (Lident "out") !Toploop.toplevel_env
   in
   let obj = Toploop.eval_value_path !Toploop.toplevel_env path in
   let (T typerep) =
-    Type.of_type_desc value_description.val_type.desc ~env:(Module_env.create ())
+    Type.of_type_desc
+      (Types.get_desc value_description.val_type)
+      ~env:(Module_env.create ())
     |> Or_error.ok_exn
     |> Py_typerep.of_type
   in
@@ -140,7 +140,7 @@ let register_module ~module_name =
   Py_module.set_unit
     modl
     "eval"
-    (let%map_open str = positional "str" string ~docstring:"ocaml code to run"
+    (let%map_open str = positional_only "str" string ~docstring:"ocaml code to run"
      and verbose = keyword "verbose" bool ~default:false ~docstring:"verbose" in
      fun () -> toploop_eval str ~verbose)
     ~docstring:
@@ -182,7 +182,7 @@ let register_module ~module_name =
   Py_module.set_unit
     modl
     "add_topdir"
-    (let%map_open dir = positional "dir" string ~docstring:"directory to add" in
+    (let%map_open dir = positional_only "dir" string ~docstring:"directory to add" in
      fun () ->
        if !is_initialized then failwith "can only add directories before initialization.";
        Topdirs.dir_directory dir)
@@ -196,8 +196,8 @@ let register_module ~module_name =
   Py_module.set_unit
     modl
     "add_named_type"
-    (let%map_open name = positional "name" string ~docstring:"type name"
-     and ocaml_type = positional "ocaml_type" string ~docstring:"ocaml type" in
+    (let%map_open name = positional_only "name" string ~docstring:"type name"
+     and ocaml_type = positional_only "ocaml_type" string ~docstring:"ocaml type" in
      fun () -> Py_typerep.register_named_type ~name ~ocaml_type)
     ~docstring:
       {|

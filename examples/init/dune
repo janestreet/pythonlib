@@ -1,8 +1,24 @@
+(rule
+ (target python-include)
+ (action
+  (with-stdout-to
+   %{target}
+   (run
+    python3
+    -c
+    "import sysconfig; print('-I{}'.format(sysconfig.get_paths()['include']))"))))
+
 (library
  (foreign_stubs
   (language c)
   (names python_init)
-  (flags -w -g -fPIC -Wall -O2 -I /usr/include/python3.6m))
+  (flags
+   -w
+   -g
+   -fPIC
+   -Wall
+   -O2
+   (:include python-include)))
  (name python_ocaml_init)
  (libraries)
  (flags :standard -linkall)

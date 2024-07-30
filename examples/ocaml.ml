@@ -9,13 +9,13 @@ type t =
 [@@deriving python]
 
 let add =
-  let%map_open arg1 = positional "lhs" int ~docstring:""
-  and arg2 = positional "rhs" int ~docstring:"" in
+  let%map_open arg1 = positional_only "lhs" int ~docstring:""
+  and arg2 = positional_only "rhs" int ~docstring:"" in
   fun () -> python_of_int (arg1 + arg2)
 ;;
 
 let make_t =
-  let%map_open foo = positional "foo" string ~docstring:""
+  let%map_open foo = positional_only "foo" string ~docstring:""
   and repeats = keyword "repeats" int ~docstring:""
   and bar1 = keyword "bar1" int ~default:42 ~docstring:""
   and bar2 = keyword "bar2" float ~default:3.14 ~docstring:"" in
@@ -23,13 +23,13 @@ let make_t =
 ;;
 
 let cartesian_product =
-  let%map_open l1 = positional "l1" (list pyobject) ~docstring:""
-  and l2 = positional "l2" (list pyobject) ~docstring:"" in
+  let%map_open l1 = positional_only "l1" (list pyobject) ~docstring:""
+  and l2 = positional_only "l2" (list pyobject) ~docstring:"" in
   fun () -> List.cartesian_product l1 l2 |> python_of_list Py.Tuple.of_pair
 ;;
 
 let approx_pi =
-  let%map_open n = positional "n" int ~docstring:"" in
+  let%map_open n = positional_only "n" int ~docstring:"" in
   fun () ->
     let sum =
       List.init n ~f:(fun i ->
@@ -41,7 +41,7 @@ let approx_pi =
 ;;
 
 let map =
-  let%map_open list = positional "list" (list int) ~docstring:""
+  let%map_open list = positional_only "list" (list int) ~docstring:""
   and fn = keyword "fn" (typerep (Function (Int, Int))) ~docstring:"" in
   fun () -> List.map list ~f:fn |> [%python_of: int list]
 ;;

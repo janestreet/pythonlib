@@ -14,7 +14,6 @@ void pyml_return_to_python();
 PyObject *PyInit_ocaml() {
   static char *argv[2] = {"python", NULL};
   caml_startup(argv);
-  pyml_return_to_python();
   PyObject *m = PyModule_Create(&ocamlmodule);
   PyObject *toploop = PyImport_ImportModule("toploop");
   int status = PyModule_AddObject(m, "toploop", toploop);

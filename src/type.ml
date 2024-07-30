@@ -38,14 +38,10 @@ let of_type_desc type_desc ~env =
     | Tpoly (_, _) -> Or_error.error_string "not handled: non-mono Tpoly"
     | Tlink e -> walk (Types.get_desc e)
     | Tsubst (e1, None) -> walk (Types.get_desc e1)
-    | Tsubst (e1, Some e2) -> walk (Ttuple [ None, e1; None, e2 ])
+    | Tsubst (e1, Some e2) -> walk (Ttuple [ e1; e2 ])
     | Ttuple es ->
       let%bind tuple =
-        List.map es ~f:(fun p ->
-          match p with
-          | None, e -> walk (Types.get_desc e)
-          | Some _, _ -> Or_error.error_string "labeled tuple")
-        |> Or_error.all
+        List.map es ~f:(fun e -> walk (Types.get_desc e)) |> Or_error.all
       in
       (match tuple with
        | [] -> Or_error.error_string "empty tuple"
@@ -55,7 +51,7 @@ let of_type_desc type_desc ~env =
        | [ t1; t2; t3; t4 ] -> Ok (Tuple4 (t1, t2, t3, t4))
        | [ t1; t2; t3; t4; t5 ] -> Ok (Tuple5 (t1, t2, t3, t4, t5))
        | _ -> Or_error.errorf "tuple with too many elements (%d)" (List.length tuple))
-    | Tarrow ((kind, _, _), e1, e2, _) ->
+    | Tarrow (kind, e1, e2, _) ->
       let%bind e1 = walk (Types.get_desc e1) in
       let%bind e2 = walk (Types.get_desc e2) in
       Ok (Arrow (kind, e1, e2))
